@@ -19,16 +19,16 @@ const App = {
         // Setup logout handler
         document.getElementById('logout-btn')?.addEventListener('click', () => this.handleLogout());
 
-        // Try to initialize Supabase auth
+        // Try to initialize PocketBase auth
         try {
-            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+            if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
                 await Auth.init();
             } else {
-                console.log('Running in demo mode - Supabase not configured');
+                console.log('Running in demo mode - PocketBase not configured');
                 this.showLogin();
             }
         } catch (err) {
-            console.log('Supabase not available, running in demo mode');
+            console.log('PocketBase not available, running in demo mode');
             this.showLogin();
         }
     },
@@ -52,8 +52,8 @@ const App = {
             errorEl.classList.add('hidden');
 
             try {
-                if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
-                    // Production: Use Supabase auth
+                if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
+                    // Production: Use PocketBase auth
                     await Auth.signIn(email, password);
                 } else {
                     // Demo mode: Simulate authentication
@@ -137,7 +137,7 @@ const App = {
      */
     async handleLogout() {
         try {
-            if (SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+            if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
                 await Auth.signOut();
             } else {
                 Auth.currentUser = null;
