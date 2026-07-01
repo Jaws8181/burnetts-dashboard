@@ -167,6 +167,26 @@ const App = {
     },
 
     /**
+     * Toggle sidebar on mobile
+     */
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    },
+
+    /**
+     * Close sidebar on mobile
+     */
+    closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+    },
+
+    /**
      * Show toast notification
      */
     showToast(message, type = 'info') {

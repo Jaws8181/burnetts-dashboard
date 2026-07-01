@@ -15,6 +15,8 @@ const Router = {
         this.currentPage = pageId;
         this.updateNavigation(pageId);
         this.renderPage(pageId);
+        // Close sidebar on mobile after navigating
+        if (window.innerWidth < 768) App.closeSidebar();
     },
 
     /**
