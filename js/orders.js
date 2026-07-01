@@ -44,12 +44,32 @@ const Orders = {
                             class="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-48">
                     </div>
                 </div>
-                <button onclick="Orders.showNewOrderModal()" 
+                <button onclick="Orders.showNewOrderModal()"
                     class="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium rounded-xl transition-colors shadow-lg shadow-brand-600/20">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
                     New Order
+                </button>
+            </div>
+
+            <!-- Mobile Status Tabs -->
+            <div class="flex md:hidden gap-2 mb-4 overflow-x-auto pb-1">
+                <button onclick="Orders.filterByStatus('all')" id="tab-all"
+                    class="status-tab flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-brand-600 text-white transition-colors">
+                    All
+                </button>
+                <button onclick="Orders.filterByStatus('new')" id="tab-new"
+                    class="status-tab flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-dark-800 text-gray-400 border border-gray-700/50 transition-colors">
+                    🔵 New
+                </button>
+                <button onclick="Orders.filterByStatus('prepping')" id="tab-prepping"
+                    class="status-tab flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-dark-800 text-gray-400 border border-gray-700/50 transition-colors">
+                    🟡 Prepping
+                </button>
+                <button onclick="Orders.filterByStatus('ready')" id="tab-ready"
+                    class="status-tab flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-dark-800 text-gray-400 border border-gray-700/50 transition-colors">
+                    🟢 Ready
                 </button>
             </div>
 
@@ -194,8 +214,24 @@ const Orders = {
                     <span class="text-xs text-gray-500">${order.phone}</span>
                     ${Auth.canViewFinancials() ? `<span class="text-sm font-semibold text-brand-400">$${order.total.toFixed(2)}</span>` : ''}
                 </div>
+                ${this.getNextStatusButton(order)}
             </div>
         `;
+    },
+
+    /**
+     * Get the "move to next status" button for a card
+     */
+    getNextStatusButton(order) {
+        const next = { new: 'prepping', prepping: 'ready', ready: 'completed' };
+        const labels = { prepping: '▶ Start Prepping', ready: '✓ Mark Ready', completed: '✓ Complete Order' };
+        const colors = { prepping: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30', ready: 'bg-green-500/20 text-green-300 border-green-500/30', completed: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
+        const nextStatus = next[order.status];
+        if (!nextStatus) return '';
+        return `<button onclick="Orders.updateOrderStatus(${order.id}, '${nextStatus}')"
+            class="mt-2 w-full py-2 text-xs font-semibold rounded-lg border ${colors[nextStatus]} transition-colors active:scale-95">
+            ${labels[nextStatus]}
+        </button>`;
     },
 
     /**
@@ -305,5 +341,36 @@ const Orders = {
      */
     hideNewOrderModal() {
         document.getElementById('new-order-modal').classList.add('hidden');
+    },
+
+    /**
+     * Mobile: filter visible cards by status tab
+     */
+    filterByStatus(status) {
+        this.activeFilter = status;
+
+        // Update tab styles
+        document.querySelectorAll('.status-tab').forEach(t => {
+            t.classList.remove('bg-brand-600', 'text-white');
+            t.classList.add('bg-dark-800', 'text-gray-400', 'border', 'border-gray-700/50');
+        });
+        const active = document.getElementById(`tab-${status}`);
+        if (active) {
+            active.classList.add('bg-brand-600', 'text-white');
+            active.classList.remove('bg-dark-800', 'text-gray-400', 'border', 'border-gray-700/50');
+        }
+
+        // Show/hide columns
+        const statuses = ['new', 'prepping', 'ready'];
+        statuses.forEach(s => {
+            const col = document.getElementById(`column-${s}`)?.closest('.kanban-column');
+            if (col) {
+                if (status === 'all' || status === s) {
+                    col.classList.remove('hidden');
+                } else {
+                    col.classList.add('hidden');
+                }
+            }
+        });
     },
 };
