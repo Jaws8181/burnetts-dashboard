@@ -1,0 +1,145 @@
+/* ==================== CUSTOM STYLES ==================== */
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1f2e;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+}
+
+/* Smooth Transitions */
+* {
+    transition-property: background-color, border-color, color, opacity;
+    transition-duration: 150ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Kanban Drag Styles */
+.kanban-card {
+    cursor: grab;
+    user-select: none;
+}
+
+.kanban-card:active {
+    cursor: grabbing;
+}
+
+.kanban-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.kanban-column.drag-over {
+    background-color: rgba(176, 137, 104, 0.05);
+    border-color: rgba(176, 137, 104, 0.3);
+}
+
+/* Sidebar Active State */
+.nav-item.active {
+    background-color: rgba(176, 137, 104, 0.15);
+    color: #b08968;
+    border-left: 3px solid #b08968;
+}
+
+.nav-item {
+    border-left: 3px solid transparent;
+}
+
+/* Card Hover Effects */
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.metric-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Loading Spinner */
+.spinner {
+    border: 3px solid rgba(176, 137, 104, 0.2);
+    border-top: 3px solid #b08968;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Pulse Animation for Low Stock */
+@keyframes pulse-red {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.low-stock-badge {
+    animation: pulse-red 2s ease-in-out infinite;
+}
+
+/* Table Styles */
+.data-table tbody tr:hover {
+    background-color: rgba(176, 137, 104, 0.05);
+}
+
+/* Toast Notifications */
+.toast {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Chart Container */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Badge Styles */
+.badge-new { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+.badge-prepping { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+.badge-ready { background-color: rgba(34, 197, 94, 0.15); color: #4ade80; }
+.badge-completed { background-color: rgba(107, 114, 128, 0.15); color: #9ca3af; }
+
+/* Modal Overlay */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+}
+
+/* Status Indicator */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-dot.online { background-color: #4ade80; }
+.status-dot.offline { background-color: #ef4444; }
+.status-dot.away { background-color: #fbbf24; }
