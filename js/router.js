@@ -12,6 +12,10 @@ const Router = {
      * Navigate to a specific page
      */
     navigate(pageId) {
+        // Stop order timers when leaving orders page
+        if (this.currentPage === 'orders' && pageId !== 'orders') {
+            Orders.stopTimers();
+        }
         this.currentPage = pageId;
         this.updateNavigation(pageId);
         this.renderPage(pageId);
