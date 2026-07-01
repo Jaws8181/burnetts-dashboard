@@ -35,7 +35,7 @@ const Auth = {
      */
     async signIn(email, password) {
         // Demo mode — bypass PocketBase if URL not configured
-        if (POCKETBASE_URL === 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
+        if (DEMO_MODE) {
             return this.demoSignIn(email);
         }
 
@@ -62,7 +62,7 @@ const Auth = {
         this.currentUser = model;
 
         // Try to fetch full profile from 'profiles' collection
-        if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
+        if (!DEMO_MODE) {
             try {
                 const profile = await pb.collection('profiles').getOne(model.id);
                 this.currentProfile = profile;

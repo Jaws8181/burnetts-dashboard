@@ -21,7 +21,7 @@ const App = {
 
         // Try to initialize PocketBase auth
         try {
-            if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
+            if (!DEMO_MODE) {
                 await Auth.init();
             } else {
                 console.log('Running in demo mode - PocketBase not configured');
@@ -52,7 +52,7 @@ const App = {
             errorEl.classList.add('hidden');
 
             try {
-                if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
+                if (!DEMO_MODE) {
                     // Production: Use PocketBase auth
                     await Auth.signIn(email, password);
                 } else {
@@ -137,7 +137,7 @@ const App = {
      */
     async handleLogout() {
         try {
-            if (POCKETBASE_URL !== 'YOUR_RAILWAY_POCKETBASE_URL_HERE') {
+            if (!DEMO_MODE) {
                 await Auth.signOut();
             } else {
                 Auth.currentUser = null;

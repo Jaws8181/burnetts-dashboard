@@ -8,6 +8,10 @@
 
 const POCKETBASE_URL = 'https://pocketbase-production-81bc.up.railway.app';
 
+// Set to true to show demo data without requiring PocketBase login
+// Set to false when going live with real users
+const DEMO_MODE = true;
+
 // Initialize PocketBase Client
 const pb = new PocketBase(POCKETBASE_URL);
 
