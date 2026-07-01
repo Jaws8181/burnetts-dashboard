@@ -71,20 +71,24 @@ const Orders = {
                     class="status-tab flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-dark-800 text-gray-400 border border-gray-700/50 transition-colors">
                     🟢 Ready
                 </button>
+                <button onclick="Orders.filterByStatus('completed')" id="tab-completed"
+                    class="status-tab flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium bg-dark-800 text-gray-400 border border-gray-700/50 transition-colors">
+                    ✅ Picked Up
+                </button>
             </div>
 
             <!-- Kanban Board -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <!-- New Orders Column -->
                 <div class="kanban-column" data-status="new">
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center gap-2">
                             <div class="w-3 h-3 rounded-full bg-blue-400"></div>
-                            <h3 class="text-sm font-semibold text-white">New Orders</h3>
+                            <h3 class="text-sm font-semibold text-white">New</h3>
                             <span class="text-xs bg-blue-400/10 text-blue-400 px-2 py-0.5 rounded-full" id="count-new">0</span>
                         </div>
                     </div>
-                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors" 
+                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors"
                          id="column-new" data-status="new">
                     </div>
                 </div>
@@ -98,7 +102,7 @@ const Orders = {
                             <span class="text-xs bg-yellow-400/10 text-yellow-400 px-2 py-0.5 rounded-full" id="count-prepping">0</span>
                         </div>
                     </div>
-                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors" 
+                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors"
                          id="column-prepping" data-status="prepping">
                     </div>
                 </div>
@@ -112,8 +116,22 @@ const Orders = {
                             <span class="text-xs bg-green-400/10 text-green-400 px-2 py-0.5 rounded-full" id="count-ready">0</span>
                         </div>
                     </div>
-                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors" 
+                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors"
                          id="column-ready" data-status="ready">
+                    </div>
+                </div>
+
+                <!-- Picked Up Column -->
+                <div class="kanban-column" data-status="completed">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                            <h3 class="text-sm font-semibold text-gray-400">Picked Up</h3>
+                            <span class="text-xs bg-gray-500/10 text-gray-400 px-2 py-0.5 rounded-full" id="count-completed">0</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3 min-h-[200px] p-2 rounded-xl border-2 border-dashed border-transparent transition-colors"
+                         id="column-completed" data-status="completed">
                     </div>
                 </div>
             </div>
@@ -171,16 +189,15 @@ const Orders = {
      * Populate Kanban columns with order cards
      */
     populateColumns() {
-        const statuses = ['new', 'prepping', 'ready'];
-        
+        const statuses = ['new', 'prepping', 'ready', 'completed'];
+
         statuses.forEach(status => {
             const column = document.getElementById(`column-${status}`);
             const orders = this.demoOrders.filter(o => o.status === status);
             const countEl = document.getElementById(`count-${status}`);
-            
+
             if (countEl) countEl.textContent = orders.length;
-            
-            column.innerHTML = orders.map(order => this.getOrderCard(order)).join('');
+            if (column) column.innerHTML = orders.map(order => this.getOrderCard(order)).join('');
         });
     },
 
@@ -224,7 +241,7 @@ const Orders = {
      */
     getNextStatusButton(order) {
         const next = { new: 'prepping', prepping: 'ready', ready: 'completed' };
-        const labels = { prepping: '▶ Start Prepping', ready: '✓ Mark Ready', completed: '✓ Complete Order' };
+        const labels = { prepping: '▶ Start Prepping', ready: '✓ Mark Ready', completed: '✓ Picked Up' };
         const colors = { prepping: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30', ready: 'bg-green-500/20 text-green-300 border-green-500/30', completed: 'bg-gray-500/20 text-gray-400 border-gray-500/30' };
         const nextStatus = next[order.status];
         if (!nextStatus) return '';
@@ -361,7 +378,7 @@ const Orders = {
         }
 
         // Show/hide columns
-        const statuses = ['new', 'prepping', 'ready'];
+        const statuses = ['new', 'prepping', 'ready', 'completed'];
         statuses.forEach(s => {
             const col = document.getElementById(`column-${s}`)?.closest('.kanban-column');
             if (col) {
