@@ -273,16 +273,10 @@ const Dashboard = {
      */
     async loadMetrics() {
         try {
-            // Attempt to fetch from Supabase
-            const { data: orders, error } = await supabase
-                .from('orders')
-                .select('*')
-                .gte('created_at', new Date().toISOString().split('T')[0]);
-
-            if (error) throw error;
-
+            const orders = await pb.collection('orders').getList(1, 100, {
+                filter: `created >= "${new Date().toISOString().split('T')[0]} 00:00:00"`
+            });
             // Update metrics with real data if available
-            // For now, demo data is displayed in the template
         } catch (err) {
             console.log('Using demo data for dashboard metrics');
         }

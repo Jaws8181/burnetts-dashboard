@@ -391,15 +391,11 @@ const Inventory = {
     /**
      * Update item in Supabase
      */
-    async updateSupabase(item) {
+    async updatePocketBase(item) {
         try {
-            const { error } = await supabase
-                .from('inventory')
-                .update({ stock: item.stock, updated_at: new Date().toISOString() })
-                .eq('id', item.id);
-            if (error) throw error;
+            await pb.collection('inventory').update(item.id, { quantity: item.stock });
         } catch (err) {
-            console.log('Demo mode: Inventory updated locally');
+            console.log('Inventory updated locally');
         }
     }
 };
