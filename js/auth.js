@@ -67,12 +67,12 @@ const Auth = {
                 const profile = await pb.collection('profiles').getOne(model.id);
                 this.currentProfile = profile;
             } catch (err) {
-                // Fallback: use model data directly (PocketBase users can have role field)
+                // Fallback: assign role by email for demo accounts
                 this.currentProfile = {
                     id: model.id,
                     full_name: model.name || model.username || model.email,
                     email: model.email,
-                    role: model.role || ROLES.STAFF,
+                    role: this.getRoleByEmail(model.email),
                 };
             }
         } else {
@@ -147,6 +147,15 @@ const Auth = {
         };
 
         return demoProfiles[email] || demoProfiles['staff@burnettsbutcher.com'];
+    },
+
+    /**
+     * Assign role based on email — used when Profiles collection has no record yet
+     */
+    getRoleByEmail(email) {
+        if (email === 'admin@burnettsbutcher.com') return ROLES.SUPERADMIN;
+        if (email === 'shane@burnettsbutcher.com') return ROLES.MANAGER;
+        return ROLES.STAFF;
     },
 
     /**
