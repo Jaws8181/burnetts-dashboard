@@ -539,13 +539,22 @@
         }
 
         // ── Time slot picker ──
-        const STORE_OPEN  = 9;   // 9 AM
-        const STORE_CLOSE = 17;  // 5 PM
-        const INTERVAL    = 30;  // minutes
+        const INTERVAL = 30; // minutes
 
-        function buildSlots() {
+        // Hours per day of week [open, close] in 24h — 0=Sun, 1=Mon, ..., 6=Sat
+        const STORE_HOURS = {
+            0: [9, 16],  // Sunday:    9:00am – 4:00pm
+            1: [9, 17],  // Monday:    9:00am – 5:00pm
+            2: [9, 18],  // Tuesday:   9:00am – 6:00pm
+            3: [9, 18],  // Wednesday: 9:00am – 6:00pm
+            4: [9, 18],  // Thursday:  9:00am – 6:00pm
+            5: [9, 18],  // Friday:    9:00am – 6:00pm
+            6: [9, 17],  // Saturday:  9:00am – 5:00pm
+        };
+
+        function buildSlots(open, close) {
             const slots = [];
-            for (let h = STORE_OPEN; h < STORE_CLOSE; h++) {
+            for (let h = open; h < close; h++) {
                 for (let m = 0; m < 60; m += INTERVAL) {
                     const hour12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
                     const ampm   = h < 12 ? 'AM' : 'PM';
@@ -561,20 +570,24 @@
             const dateVal  = document.getElementById('pickup-date').value;
             const wrap     = document.getElementById('time-slots');
             const hiddenIn = document.getElementById('pickup-time');
-            const slots    = buildSlots();
-
-            const now         = new Date();
-            const selectedDate= dateVal ? new Date(dateVal + 'T00:00:00') : null;
-            const isToday     = selectedDate &&
-                selectedDate.toDateString() === now.toDateString();
 
             wrap.innerHTML = '';
             hiddenIn.value = '';
 
+            if (!dateVal) return;
+
+            const selectedDate = new Date(dateVal + 'T00:00:00');
+            const dayOfWeek    = selectedDate.getDay();
+            const [open, close] = STORE_HOURS[dayOfWeek];
+            const slots        = buildSlots(open, close);
+
+            const now     = new Date();
+            const isToday = selectedDate.toDateString() === now.toDateString();
+
             slots.forEach(slot => {
                 const btn = document.createElement('button');
-                btn.type      = 'button';
-                btn.className = 'time-slot';
+                btn.type        = 'button';
+                btn.className   = 'time-slot';
                 btn.textContent = slot.label;
                 btn.dataset.value = slot.value;
 
