@@ -1,5 +1,3 @@
-import { EmailMessage } from "cloudflare:email";
-
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
@@ -61,7 +59,7 @@ export async function onRequestPost({ request, env }) {
 
           </table>
           <div style="margin-top: 24px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
-            <p style="margin: 0; font-size: 13px; color: #92400e;">Reply directly to this email to reach the customer.</p>
+            <p style="margin: 0; font-size: 13px; color: #92400e;">Reply directly to this email to reach the customer — their address is set as the reply-to.</p>
           </div>
         </div>
       </div>
@@ -69,24 +67,25 @@ export async function onRequestPost({ request, env }) {
 
     const subject = `New Order — ${customer} | Pickup ${pickupDate} at ${pickupTime} | ${total}`;
 
-    const rawEmail = [
-      `MIME-Version: 1.0`,
-      `From: Burnett's Orders <orders@barriewebautomation.com>`,
-      `To: ${env.NOTIFY_EMAIL}`,
-      `Reply-To: ${email}`,
-      `Subject: ${subject}`,
-      `Content-Type: text/html; charset=UTF-8`,
-      ``,
-      emailHtml,
-    ].join('\r\n');
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: "Burnett's Orders <orders@barriewebautomation.com>",
+        to: [env.NOTIFY_EMAIL],
+        reply_to: email,
+        subject,
+        html: emailHtml,
+      }),
+    });
 
-    const message = new EmailMessage(
-      'orders@barriewebautomation.com',
-      env.NOTIFY_EMAIL,
-      rawEmail
-    );
-
-    await env.EMAIL.send(message);
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Resend error: ${err}`);
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
