@@ -87,6 +87,58 @@ export async function onRequestPost({ request, env }) {
       throw new Error(`Resend error: ${err}`);
     }
 
+    // Customer confirmation email
+    if (email && email !== '—') {
+      const confirmHtml = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #92400e; padding: 20px 24px; border-radius: 8px 8px 0 0;">
+            <h2 style="color: white; margin: 0; font-size: 20px;">Order Confirmed — Burnett's Butcher Shop</h2>
+            <p style="color: #fde68a; margin: 4px 0 0; font-size: 14px;">535 Bryne Dr, Barrie, ON · (705) 733-0232</p>
+          </div>
+          <div style="background: #f9fafb; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <p style="font-size: 15px; color: #111827;">Hi ${customer}, thanks for your order! Here's your summary:</p>
+            <table style="width: 100%; border-collapse: collapse;">
+
+              <tr><td colspan="2" style="padding: 8px 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em;">Pickup</td></tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280; width: 140px;">Date</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${pickupDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Time</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${pickupTime}</td>
+              </tr>
+
+              <tr><td colspan="2" style="padding: 16px 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em; border-top: 1px solid #e5e7eb;">Items Ordered</td></tr>
+              ${itemRows}
+              <tr>
+                <td style="padding: 10px 0 4px; font-size: 14px; color: #6b7280; font-weight: 700;">Order Total</td>
+                <td style="padding: 10px 0 4px; font-size: 14px; color: #111827; font-weight: 700;">${total}</td>
+              </tr>
+
+            </table>
+            <div style="margin-top: 24px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
+              <p style="margin: 0; font-size: 13px; color: #92400e;">Please bring this email with you at pickup. See you soon!</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: "Burnett's Butcher Shop <orders@barriewebautomation.com>",
+          to: [email],
+          subject: `Order Confirmed — Pickup ${pickupDate} at ${pickupTime}`,
+          html: confirmHtml,
+        }),
+      });
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
