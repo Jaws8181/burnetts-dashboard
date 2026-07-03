@@ -118,7 +118,7 @@ export async function onRequestPost({ request, env }) {
 
             </table>
             <div style="margin-top: 24px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
-              <p style="margin: 0; font-size: 13px; color: #92400e;">Please bring this email with you at pickup. See you soon!</p>
+              <p style="margin: 0; font-size: 13px; color: #92400e;">We'll have your order ready for pickup. See you soon!</p>
             </div>
           </div>
         </div>
