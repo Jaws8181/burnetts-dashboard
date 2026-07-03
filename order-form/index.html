@@ -597,6 +597,13 @@
                         <label for="email">Email Address</label>
                         <input type="email" id="email" name="email" placeholder="sarah@example.com" required>
                     </div>
+                    <div style="display: flex; align-items: flex-start; gap: 12px; margin-top: 4px;">
+                        <input type="checkbox" id="subscribe" name="subscribe" value="yes"
+                            style="width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px; accent-color: var(--tan); cursor: pointer;">
+                        <label for="subscribe" style="font-size: 13px; color: #888; text-transform: none; letter-spacing: 0; cursor: pointer; line-height: 1.5;">
+                            Sign me up for promotions and updates from Burnett's Butcher Shop.
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -762,7 +769,8 @@
                     customer: `${firstName} ${lastName}`,
                     first_name: firstName, last_name: lastName,
                     phone, email, items, pickupDate,
-                    pickupTime: pickupTimeDisplay, total
+                    pickupTime: pickupTimeDisplay, total,
+                    subscribe: document.getElementById('subscribe').checked,
                 };
             } else {
                 const cut    = document.getElementById('custom-cut').value.trim();
@@ -779,7 +787,8 @@
                     first_name: firstName, last_name: lastName,
                     phone, email, pickupDate,
                     pickupTime: pickupTimeDisplay,
-                    cut, qty, serves, notes
+                    cut, qty, serves, notes,
+                    subscribe: document.getElementById('subscribe').checked,
                 };
             }
 

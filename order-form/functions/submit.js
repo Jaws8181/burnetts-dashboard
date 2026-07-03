@@ -110,6 +110,17 @@ export async function onRequestPost({ request, env }) {
         throw new Error(`Resend error: ${err}`);
       }
 
+      // Save subscriber to PocketBase if opted in
+      if (body.subscribe && email && email !== '—') {
+        try {
+          await fetch(`${env.BURNETTS_PB_URL}/api/collections/subscribers/records`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, name: customer, source: 'order-form', unsubscribe: false }),
+          });
+        } catch (_) { /* don't fail the submission if PocketBase save fails */ }
+      }
+
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -253,6 +264,17 @@ export async function onRequestPost({ request, env }) {
           html: confirmHtml,
         }),
       });
+    }
+
+    // Save subscriber to PocketBase if opted in
+    if (body.subscribe && email && email !== '—') {
+      try {
+        await fetch(`${env.BURNETTS_PB_URL}/api/collections/subscribers/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name: customer, source: 'order-form', unsubscribe: false }),
+        });
+      } catch (_) { /* don't fail the submission if PocketBase save fails */ }
     }
 
     return new Response(JSON.stringify({ success: true }), {
