@@ -336,6 +336,58 @@
         }
         .error-msg.show { display: block; }
 
+        /* ── MODE TOGGLE ── */
+        .mode-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 6px;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .mode-btn {
+            padding: 12px;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            background: transparent;
+            color: #888;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: var(--tan);
+            color: #0f1216;
+            border-color: var(--tan);
+        }
+
+        /* ── CUSTOM FORM ── */
+        .field-group textarea {
+            background: rgba(8,10,13,0.6);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 15px;
+            padding: 13px 14px;
+            width: 100%;
+            transition: border-color 0.2s;
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        .field-group textarea:focus {
+            outline: none;
+            border-color: var(--tan);
+        }
+        .field-group textarea::placeholder { color: #555; }
+
         @media (max-width: 480px) {
             .field-row { grid-template-columns: 1fr; }
             .product-img { width: 60px; height: 60px; }
@@ -375,6 +427,14 @@
         <!-- Form -->
         <form id="order-form">
 
+            <!-- Mode Toggle -->
+            <div class="mode-toggle">
+                <button type="button" class="mode-btn active" id="btn-package" onclick="setMode('package')">Package Order</button>
+                <button type="button" class="mode-btn" id="btn-custom" onclick="setMode('custom')">Custom Request</button>
+            </div>
+
+            <!-- ── PACKAGE MODE ── -->
+            <div id="package-mode">
             <!-- Products -->
             <p class="section-title">Select Your Packages</p>
             <div class="products" id="products">
@@ -467,6 +527,36 @@
                 <span class="total-amount" id="total-display">$0.00 CAD</span>
             </div>
 
+            </div><!-- end #package-mode -->
+
+            <!-- ── CUSTOM REQUEST MODE ── -->
+            <div id="custom-mode" style="display:none;">
+                <p class="section-title">What Are You Looking For?</p>
+                <div class="form-section">
+                    <div class="fields">
+                        <div class="field-group">
+                            <label for="custom-cut">Cut / Item</label>
+                            <input type="text" id="custom-cut" name="custom_cut" placeholder="e.g. AAA Ribeye, Pork Belly, Brisket…">
+                        </div>
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="custom-qty">Quantity / Weight</label>
+                                <input type="text" id="custom-qty" name="custom_qty" placeholder="e.g. 2 lbs, 4 pieces">
+                            </div>
+                            <div class="field-group">
+                                <label for="custom-serves">Serves</label>
+                                <input type="text" id="custom-serves" name="custom_serves" placeholder="e.g. 4 people">
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <label for="custom-notes">Special Instructions</label>
+                            <textarea id="custom-notes" name="custom_notes" placeholder="Trim level, thickness, any prep notes, or questions for Shane…"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <p class="section-title" style="margin-top:8px;">Preferred Pickup</p>
+            </div><!-- end #custom-mode -->
+
             <!-- Pickup -->
             <div class="form-section">
                 <p class="section-title">Pickup Details</p>
@@ -518,6 +608,19 @@
     </div>
 
     <script>
+        // ── Mode toggle ──
+        let currentMode = 'package';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('package-mode').style.display = mode === 'package' ? '' : 'none';
+            document.getElementById('custom-mode').style.display  = mode === 'custom'  ? '' : 'none';
+            document.getElementById('btn-package').classList.toggle('active', mode === 'package');
+            document.getElementById('btn-custom').classList.toggle('active', mode === 'custom');
+            document.getElementById('submit-btn').textContent = mode === 'package' ? 'Place Order' : 'Send Request';
+            document.getElementById('error-msg').classList.remove('show');
+        }
+
         // ── Product card toggle ──
         function toggleCard(label) {
             const cb  = label.querySelector('input[type="checkbox"]');
@@ -619,68 +722,91 @@
             const btn     = document.getElementById('submit-btn');
             errorEl.classList.remove('show');
 
-            const selected = [...document.querySelectorAll('.product-card.selected input')];
-            if (selected.length === 0) {
-                errorEl.textContent = 'Please select at least one package.';
-                errorEl.classList.add('show');
-                return;
-            }
-
             const pickupDate = document.getElementById('pickup-date').value;
             const pickupTime = document.getElementById('pickup-time').value;
+            const firstName  = document.getElementById('first-name').value.trim();
+            const lastName   = document.getElementById('last-name').value.trim();
+            const phone      = document.getElementById('phone').value.trim();
+            const email      = document.getElementById('email').value.trim();
 
             if (!pickupDate) {
                 errorEl.textContent = 'Please choose a pickup date.';
-                errorEl.classList.add('show');
-                return;
+                errorEl.classList.add('show'); return;
             }
             if (!pickupTime) {
                 errorEl.textContent = 'Please choose a pickup time.';
-                errorEl.classList.add('show');
-                return;
+                errorEl.classList.add('show'); return;
             }
 
-            const items = selected.map(cb => {
-                const qty = cb.closest('.product-card').querySelector('.qty-select').value;
-                return `${cb.value} x${qty}`;
-            });
-
-            const firstName = document.getElementById('first-name').value.trim();
-            const lastName  = document.getElementById('last-name').value.trim();
-            const phone     = document.getElementById('phone').value.trim();
-            const email     = document.getElementById('email').value.trim();
-            const total     = document.getElementById('total-display').textContent;
-
             // Format time for display (e.g. "14:30" → "2:30 PM")
-            const [h, m] = pickupTime.split(':').map(Number);
-            const hr12   = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-            const ampm   = h < 12 ? 'AM' : 'PM';
+            const [h, m]        = pickupTime.split(':').map(Number);
+            const hr12          = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            const ampm          = h < 12 ? 'AM' : 'PM';
             const pickupTimeDisplay = `${hr12}:${String(m).padStart(2,'0')} ${ampm}`;
 
+            let payload;
+
+            if (currentMode === 'package') {
+                const selected = [...document.querySelectorAll('.product-card.selected input')];
+                if (selected.length === 0) {
+                    errorEl.textContent = 'Please select at least one package.';
+                    errorEl.classList.add('show'); return;
+                }
+                const items = selected.map(cb => {
+                    const qty = cb.closest('.product-card').querySelector('.qty-select').value;
+                    return `${cb.value} x${qty}`;
+                });
+                const total = document.getElementById('total-display').textContent;
+                payload = {
+                    orderType: 'package',
+                    customer: `${firstName} ${lastName}`,
+                    first_name: firstName, last_name: lastName,
+                    phone, email, items, pickupDate,
+                    pickupTime: pickupTimeDisplay, total
+                };
+            } else {
+                const cut    = document.getElementById('custom-cut').value.trim();
+                const qty    = document.getElementById('custom-qty').value.trim();
+                const serves = document.getElementById('custom-serves').value.trim();
+                const notes  = document.getElementById('custom-notes').value.trim();
+                if (!cut) {
+                    errorEl.textContent = 'Please describe what you\'re looking for.';
+                    errorEl.classList.add('show'); return;
+                }
+                payload = {
+                    orderType: 'custom',
+                    customer: `${firstName} ${lastName}`,
+                    first_name: firstName, last_name: lastName,
+                    phone, email, pickupDate,
+                    pickupTime: pickupTimeDisplay,
+                    cut, qty, serves, notes
+                };
+            }
+
             btn.disabled    = true;
-            btn.textContent = 'Placing Order...';
+            btn.textContent = currentMode === 'package' ? 'Placing Order...' : 'Sending Request...';
 
             try {
                 const res = await fetch('/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        customer: `${firstName} ${lastName}`,
-                        first_name: firstName, last_name: lastName,
-                        phone, email, items, pickupDate,
-                        pickupTime: pickupTimeDisplay, total
-                    })
+                    body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error('Server error');
             } catch (err) {
                 // Demo mode: show success regardless
             } finally {
                 btn.disabled    = false;
-                btn.textContent = 'Place Order';
+                btn.textContent = currentMode === 'package' ? 'Place Order' : 'Send Request';
             }
 
             document.getElementById('order-form').style.display = 'none';
-            document.getElementById('success').classList.add('show');
+            const successEl = document.getElementById('success');
+            successEl.classList.add('show');
+            successEl.querySelector('h2').textContent = currentMode === 'package' ? 'Order Received!' : 'Request Sent!';
+            successEl.querySelector('p').innerHTML = currentMode === 'package'
+                ? `Thanks, <span>${firstName}</span>.<br>We'll have your order ready for pickup.<br>See you soon!`
+                : `Thanks, <span>${firstName}</span>.<br>Shane will be in touch to confirm<br>availability and pickup details.`;
             document.getElementById('success-name').textContent = firstName;
         });
 

@@ -1,6 +1,107 @@
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
+    const orderType = body.orderType || 'package';
+
+    // ── CUSTOM REQUEST ──
+    if (orderType === 'custom') {
+      const {
+        customer   = '—',
+        phone      = '—',
+        email      = '—',
+        pickupDate = '—',
+        pickupTime = '—',
+        cut        = '—',
+        qty        = '—',
+        serves     = '—',
+        notes      = '—',
+      } = body;
+
+      const emailHtml = `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #92400e; padding: 20px 24px; border-radius: 8px 8px 0 0;">
+            <h2 style="color: white; margin: 0; font-size: 20px;">Custom Cut Request — Burnett's Butcher Shop</h2>
+            <p style="color: #fde68a; margin: 4px 0 0; font-size: 14px;">505 Bryne Dr, Barrie, ON · L4N 9P6</p>
+          </div>
+          <div style="background: #f9fafb; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+            <table style="width: 100%; border-collapse: collapse;">
+
+              <tr><td colspan="2" style="padding: 8px 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em;">What They Want</td></tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280; width: 140px;">Cut / Item</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${cut}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Quantity / Weight</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${qty}</td>
+              </tr>
+              ${serves !== '—' ? `<tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Serves</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${serves}</td>
+              </tr>` : ''}
+              ${notes !== '—' ? `<tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280; vertical-align: top;">Notes</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827;">${notes}</td>
+              </tr>` : ''}
+
+              <tr><td colspan="2" style="padding: 16px 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em; border-top: 1px solid #e5e7eb;">Preferred Pickup</td></tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Date</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${pickupDate}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Time</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${pickupTime}</td>
+              </tr>
+
+              <tr><td colspan="2" style="padding: 16px 0 4px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #9ca3af; letter-spacing: 0.05em; border-top: 1px solid #e5e7eb;">Customer</td></tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Name</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;">${customer}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Phone</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;"><a href="tel:${phone}" style="color: #92400e;">${phone}</a></td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 14px; color: #6b7280;">Email</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;"><a href="mailto:${email}" style="color: #92400e;">${email}</a></td>
+              </tr>
+            </table>
+            <div style="margin-top: 24px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
+              <p style="margin: 0; font-size: 13px; color: #92400e;">Reply directly to this email to reach the customer — their address is set as the reply-to.</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: "Burnett's Orders <orders@barriewebautomation.com>",
+          to: [env.NOTIFY_EMAIL],
+          reply_to: email,
+          subject: `Custom Request — ${customer} | ${cut} | Pickup ${pickupDate}`,
+          html: emailHtml,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Resend error: ${err}`);
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // ── PACKAGE ORDER (existing logic) ──
     const {
       customer   = '—',
       phone      = '—',
@@ -21,7 +122,7 @@ export async function onRequestPost({ request, env }) {
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #92400e; padding: 20px 24px; border-radius: 8px 8px 0 0;">
           <h2 style="color: white; margin: 0; font-size: 20px;">New Order — Burnett's Butcher Shop</h2>
-          <p style="color: #fde68a; margin: 4px 0 0; font-size: 14px;">Online Order Form Submission</p>
+          <p style="color: #fde68a; margin: 4px 0 0; font-size: 14px;">505 Bryne Dr, Barrie, ON · L4N 9P6</p>
         </div>
         <div style="background: #f9fafb; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
           <table style="width: 100%; border-collapse: collapse;">
@@ -93,7 +194,7 @@ export async function onRequestPost({ request, env }) {
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #92400e; padding: 20px 24px; border-radius: 8px 8px 0 0;">
             <h2 style="color: white; margin: 0; font-size: 20px;">Order Confirmed — Burnett's Butcher Shop</h2>
-            <p style="color: #fde68a; margin: 4px 0 0; font-size: 14px;">535 Bryne Dr, Barrie, ON · (705) 733-0232</p>
+            <p style="color: #fde68a; margin: 4px 0 0; font-size: 14px;">505 Bryne Dr, Barrie, ON · L4N 9P6</p>
           </div>
           <div style="background: #f9fafb; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
             <p style="font-size: 15px; color: #111827;">Hi ${customer}, thanks for your order! Here's your summary:</p>
