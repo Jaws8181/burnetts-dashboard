@@ -17,6 +17,13 @@ export async function onRequestPost({ request, env }) {
         notes      = '—',
       } = body;
 
+      // Pre-filled mailto confirm button for Shane
+      const confirmSubject = encodeURIComponent(`Your Order is Ready for Pickup — Burnett's Butcher Shop`);
+      const confirmBody = encodeURIComponent(
+        `Hi ${customer},\n\nGreat news — your order is ready!\n\nItem: ${cut}\nQuantity: ${qty}\nPickup: ${pickupDate} at ${pickupTime}\n\nSee you then!\nBurnett's Butcher Shop\n505 Bryne Dr, Barrie, ON L4N 9P6\n(705) 733-0232`
+      );
+      const mailtoLink = `mailto:${email}?subject=${confirmSubject}&body=${confirmBody}`;
+
       const emailHtml = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #92400e; padding: 20px 24px; border-radius: 8px 8px 0 0;">
@@ -68,8 +75,16 @@ export async function onRequestPost({ request, env }) {
                 <td style="padding: 6px 0; font-size: 14px; color: #111827; font-weight: 600;"><a href="mailto:${email}" style="color: #92400e;">${email}</a></td>
               </tr>
             </table>
-            <div style="margin-top: 24px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
-              <p style="margin: 0; font-size: 13px; color: #92400e;">Reply directly to this email to reach the customer — their address is set as the reply-to.</p>
+
+            <div style="margin-top: 24px; text-align: center;">
+              <a href="${mailtoLink}" style="display: inline-block; background: #92400e; color: white; text-decoration: none; font-size: 15px; font-weight: 700; padding: 14px 32px; border-radius: 8px;">
+                ✓ Confirm Order Ready
+              </a>
+              <p style="margin: 10px 0 0; font-size: 12px; color: #6b7280;">Opens your email pre-filled — edit details if needed, then hit Send.</p>
+            </div>
+
+            <div style="margin-top: 16px; padding: 16px; background: #fffbeb; border-radius: 8px; border: 1px solid #fde68a;">
+              <p style="margin: 0; font-size: 13px; color: #92400e;">Or reply directly to this email to reach the customer — their address is set as the reply-to.</p>
             </div>
           </div>
         </div>
