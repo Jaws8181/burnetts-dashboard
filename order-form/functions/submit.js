@@ -110,6 +110,20 @@ export async function onRequestPost({ request, env }) {
         throw new Error(`Resend error: ${err}`);
       }
 
+      // Save contact to PocketBase
+      try {
+        await fetch(`${env.BURNETTS_PB_URL}/api/collections/contacts/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: customer, email, phone,
+            service: `Custom Cut — ${cut} x${qty} — Pickup ${pickupDate} ${pickupTime}`,
+            message: notes,
+            subscribed: !!body.subscribe,
+          }),
+        });
+      } catch (_) {}
+
       // Save subscriber to PocketBase if opted in
       if (body.subscribe && email && email !== '—') {
         try {
@@ -118,7 +132,7 @@ export async function onRequestPost({ request, env }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, name: customer, source: 'order-form', unsubscribe: false }),
           });
-        } catch (_) { /* don't fail the submission if PocketBase save fails */ }
+        } catch (_) {}
       }
 
       return new Response(JSON.stringify({ success: true }), {
@@ -266,6 +280,20 @@ export async function onRequestPost({ request, env }) {
       });
     }
 
+    // Save contact to PocketBase
+    try {
+      await fetch(`${env.BURNETTS_PB_URL}/api/collections/contacts/records`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: customer, email, phone,
+          service: `Package Order — Pickup ${pickupDate} ${pickupTime} — ${total}`,
+          message: items.join(', '),
+          subscribed: !!body.subscribe,
+        }),
+      });
+    } catch (_) {}
+
     // Save subscriber to PocketBase if opted in
     if (body.subscribe && email && email !== '—') {
       try {
@@ -274,7 +302,7 @@ export async function onRequestPost({ request, env }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, name: customer, source: 'order-form', unsubscribe: false }),
         });
-      } catch (_) { /* don't fail the submission if PocketBase save fails */ }
+      } catch (_) {}
     }
 
     return new Response(JSON.stringify({ success: true }), {
