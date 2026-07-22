@@ -420,8 +420,8 @@
             <div class="success-icon">✓</div>
             <h2>Order Received!</h2>
             <p>Thanks, <span id="success-name"></span>.<br>
-               We've received your order and will send<br>
-               a confirmation once it's ready.</p>
+               Your order is in — we'll be in touch<br>
+               to confirm shortly.</p>
         </div>
 
         <!-- Form -->
@@ -814,7 +814,7 @@
             successEl.classList.add('show');
             successEl.querySelector('h2').textContent = currentMode === 'package' ? 'Order Received!' : 'Request Sent!';
             successEl.querySelector('p').innerHTML = currentMode === 'package'
-                ? `Thanks, <span>${firstName}</span>.<br>We've received your order and will send<br>a confirmation once it's ready.`
+                ? `Thanks, <span>${firstName}</span>.<br>Your order is in — we'll be in touch<br>to confirm shortly.`
                 : `Thanks, <span>${firstName}</span>.<br>We'll be in touch to confirm<br>availability and pickup details.`;
             document.getElementById('success-name').textContent = firstName;
         });
