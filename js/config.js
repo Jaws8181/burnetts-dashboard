@@ -15,8 +15,15 @@ const BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
 // false → Supabase Auth required, real order data loads
 
 // Initialize Supabase Client
-// Optional chaining ensures DEMO_MODE is always defined even if CDN fails to load
-const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
+// Wrapped in try/catch so config.js always runs to completion even if Supabase throws
+let supabase = null;
+try {
+    if (window.supabase && window.supabase.createClient) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+} catch (e) {
+    console.warn('Supabase init failed — demo mode will still work:', e.message);
+}
 
 // App Configuration
 const APP_CONFIG = {
