@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Online | Burnett's Butcher Shop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Asap:wght@400;500;600;700&family=Roboto+Slab:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Asap', 'sans-serif'],
+                        serif: ['Roboto Slab', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50:  '#fdf8ee',
+                            100: '#f5e8cc',
+                            200: '#ebd09a',
+                            300: '#ddb870',
+                            400: '#c8a070',
+                            500: '#b08848',
+                            600: '#9c6f2a',
+                            700: '#7f5520',
+                            800: '#6b4018',
+                            900: '#3d2108',
+                        },
+                        dark: {
+                            700: '#1c2830',
+                            800: '#141c22',
+                            900: '#0e1317',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background: #f8f5f0; }
+        .item-card { transition: all 0.2s ease; }
+        .item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+        .qty-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+        .qty-btn:hover { background: #c8a070; color: white; }
+        .spinner { border: 3px solid #e5e7eb; border-top-color: #9c6f2a; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 100; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transform: translateY(0); transition: all 0.3s ease; }
+        .toast.hide { transform: translateY(80px); opacity: 0; }
+        .category-header { background: linear-gradient(90deg, #c8a070 0%, transparent 100%); }
+    </style>
+</head>
+<body class="min-h-screen font-sans">
+
+    <!-- Header -->
+    <header style="background: #0e1317;">
+        <!-- Tan accent strip -->
+        <div class="w-full px-4 py-1.5 text-xs font-medium flex gap-6 justify-center" style="background: #c8a070; color: #0e1317;">
+            <span>📍 535 Bryne Dr, Barrie, ON</span>
+            <span>📞 (705) 733-0232</span>
+            <span>🕐 Mon–Sat: 9am–6pm</span>
+        </div>
+        <div class="max-w-5xl mx-auto px-4 py-5 flex flex-col items-center">
+            <img src="https://burnettsbutchershop.com/wp-content/uploads/2020/06/BurnettsButcher_LG_MainLG_White.png"
+                 alt="Burnett's Butcher Shop" class="h-16 mb-2"
+                 onerror="this.style.display='none';document.getElementById('hdr-fallback').style.display='block'">
+            <div id="hdr-fallback" style="display:none;" class="text-center">
+                <h1 class="text-3xl font-serif font-bold text-white">Burnett's</h1>
+                <p class="text-brand-400 text-xs tracking-widest uppercase">Butcher Shop</p>
+            </div>
+            <div class="w-12 h-0.5 mt-3 mb-2" style="background:#c8a070;"></div>
+            <p class="text-gray-400 text-sm">Order Online — Pickup In Store</p>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="max-w-5xl mx-auto px-4 py-8">
+
+        <!-- Loading state -->
+        <div id="loading-state" class="flex flex-col items-center justify-center py-20 gap-4">
+            <div class="spinner"></div>
+            <p class="text-gray-500 text-sm">Loading today's selection...</p>
+        </div>
+
+        <!-- Empty state -->
+        <div id="empty-state" class="hidden text-center py-20">
+            <p class="text-gray-400 text-lg">No items available right now.</p>
+            <p class="text-gray-500 text-sm mt-2">Check back soon or call us at (705) 733-0232.</p>
+        </div>
+
+        <!-- Product grid -->
+        <div id="product-grid" class="hidden">
+
+            <!-- Intro blurb -->
+            <div class="mb-8 text-center">
+                <h2 class="text-2xl font-serif font-bold text-gray-900">Today's Selection</h2>
+                <p class="text-gray-500 mt-2 text-sm max-w-lg mx-auto">Choose your cuts below, add them to your order, and we'll have everything ready for pickup.</p>
+            </div>
+
+            <!-- Items by category -->
+            <div id="items-container" class="space-y-8 mb-10"></div>
+
+            <!-- Order summary -->
+            <div id="order-summary" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Your Order</h3>
+                <div id="order-lines" class="space-y-2 mb-4"></div>
+                <div class="border-t border-gray-100 pt-4 flex justify-between items-center">
+                    <span class="font-semibold text-gray-700">Estimated Total</span>
+                    <span class="text-xl font-bold text-gray-900" id="order-total">$0.00</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-2">Final price confirmed at pickup. Prices are per unit as listed.</p>
+            </div>
+
+            <!-- Customer info form -->
+            <div id="customer-form-wrap" class="hidden bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-5">Your Details</h3>
+                <form id="customer-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+                            <input type="text" id="cust-name" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                                placeholder="Jane Smith">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number *</label>
+                            <input type="tel" id="cust-phone" required
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+                                placeholder="(705) 555-0123">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Pickup Date *</label>
+                        <input type="date" id="cust-pickup" required
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                        <textarea id="cust-notes" rows="3"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 resize-none"
+                            placeholder="Any special requests, cutting preferences, etc."></textarea>
+                    </div>
+                    <button type="submit" id="submit-btn"
+                        class="w-full py-3 font-semibold text-white rounded-xl transition-colors text-sm"
+                        style="background:#9c6f2a;">
+                        Place Order
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Success screen -->
+        <div id="success-screen" class="hidden text-center py-16">
+            <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6" style="background:#d4edda;">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-serif font-bold text-gray-900 mb-3">Order Received!</h2>
+            <p class="text-gray-600 max-w-sm mx-auto mb-2">Thanks, <span id="success-name"></span>. We'll have your order ready for pickup on <strong><span id="success-date"></span></strong>.</p>
+            <p class="text-gray-500 text-sm">Questions? Call us at <a href="tel:7057330232" class="text-brand-600 font-medium">(705) 733-0232</a>.</p>
+            <button onclick="location.reload()" class="mt-8 px-6 py-2.5 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+                Start a New Order
+            </button>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-16 py-8 text-center text-xs text-gray-400 border-t border-gray-200">
+        <p>© 2024 Burnett's Butcher Shop — 535 Bryne Dr, Barrie, ON L4N 9G3</p>
+        <p class="mt-1">Powered by <span class="text-brand-500">BWA</span></p>
+    </footer>
+
+    <script>
+    // ─── Config ───────────────────────────────────────────────────────────────
+    const SUPABASE_URL     = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
+    const BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
+
+    var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ─── State ────────────────────────────────────────────────────────────────
+    let cart = {}; // { itemId: { item, qty } }
+
+    // ─── Load items ───────────────────────────────────────────────────────────
+    async function loadItems() {
+        const { data, error } = await sb
+            .from('inventory')
+            .select('id, name, category, unit, stock, price, image_url, show_on_order_form')
+            .eq('client_id', BURNETTS_CLIENT_ID)
+            .eq('show_on_order_form', true)
+            .eq('active', true)
+            .gt('stock', 0)
+            .order('category')
+            .order('name');
+
+        document.getElementById('loading-state').classList.add('hidden');
+
+        if (error || !data || data.length === 0) {
+            document.getElementById('empty-state').classList.remove('hidden');
+            return;
+        }
+
+        document.getElementById('product-grid').classList.remove('hidden');
+        renderItems(data);
+    }
+
+    // ─── Render items by category ─────────────────────────────────────────────
+    function renderItems(items) {
+        const container = document.getElementById('items-container');
+        const categories = {};
+        items.forEach(item => {
+            if (!categories[item.category]) categories[item.category] = [];
+            categories[item.category].push(item);
+        });
+
+        container.innerHTML = Object.entries(categories).map(([cat, catItems]) => `
+            <div>
+                <div class="category-header rounded-xl px-4 py-2 mb-4">
+                    <h3 class="text-sm font-semibold text-white uppercase tracking-wider">${cat}</h3>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    ${catItems.map(item => renderItemCard(item)).join('')}
+                </div>
+            </div>
+        `).join('');
+
+        // Set minimum pickup date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        document.getElementById('cust-pickup').min = tomorrow.toISOString().split('T')[0];
+    }
+
+    function renderItemCard(item) {
+        const isLow = item.stock <= 5;
+        return `
+            <div class="item-card bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm" id="card-${item.id}">
+                ${item.image_url
+                    ? `<img src="${item.image_url}" alt="${item.name}" class="w-full h-44 object-cover">`
+                    : `<div class="w-full h-44 flex items-center justify-center" style="background:#f5ede0;">
+                         <svg class="w-12 h-12" style="color:#c8a070;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                         </svg>
+                       </div>`}
+                <div class="p-4">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <h4 class="font-semibold text-gray-900 text-sm leading-tight">${item.name}</h4>
+                        ${isLow ? '<span class="text-xs text-yellow-600 font-medium bg-yellow-50 px-2 py-0.5 rounded-full whitespace-nowrap">Low Stock</span>' : ''}
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">per ${item.unit}</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-lg font-bold text-gray-900">$${parseFloat(item.price).toFixed(2)}</span>
+                        <div class="flex items-center gap-2 border border-gray-200 rounded-xl p-1">
+                            <button class="qty-btn text-gray-500 hover:bg-brand-400" onclick="updateQty('${item.id}', -1, ${JSON.stringify(item).replace(/"/g, '&quot;')})">−</button>
+                            <span class="w-6 text-center text-sm font-semibold text-gray-800" id="qty-${item.id}">0</span>
+                            <button class="qty-btn text-gray-500 hover:bg-brand-400" onclick="updateQty('${item.id}', 1, ${JSON.stringify(item).replace(/"/g, '&quot;')})">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // ─── Cart ─────────────────────────────────────────────────────────────────
+    function updateQty(itemId, delta, item) {
+        if (!cart[itemId]) cart[itemId] = { item, qty: 0 };
+        cart[itemId].qty = Math.max(0, cart[itemId].qty + delta);
+        if (cart[itemId].qty === 0) delete cart[itemId];
+
+        document.getElementById('qty-' + itemId).textContent = cart[itemId]?.qty || 0;
+        refreshSummary();
+    }
+
+    function refreshSummary() {
+        const lines    = Object.values(cart);
+        const summary  = document.getElementById('order-summary');
+        const formWrap = document.getElementById('customer-form-wrap');
+        const orderLines = document.getElementById('order-lines');
+        const total    = document.getElementById('order-total');
+
+        if (lines.length === 0) {
+            summary.classList.add('hidden');
+            formWrap.classList.add('hidden');
+            return;
+        }
+
+        summary.classList.remove('hidden');
+        formWrap.classList.remove('hidden');
+
+        orderLines.innerHTML = lines.map(({ item, qty }) => `
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-700">${item.name} <span class="text-gray-400">× ${qty} ${item.unit}</span></span>
+                <span class="font-medium text-gray-900">$${(parseFloat(item.price) * qty).toFixed(2)}</span>
+            </div>`).join('');
+
+        const totalAmt = lines.reduce((s, { item, qty }) => s + parseFloat(item.price) * qty, 0);
+        total.textContent = '$' + totalAmt.toFixed(2);
+    }
+
+    // ─── Submit ───────────────────────────────────────────────────────────────
+    document.getElementById('customer-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        btn.disabled = true;
+        btn.textContent = 'Placing order...';
+
+        const name   = document.getElementById('cust-name').value.trim();
+        const phone  = document.getElementById('cust-phone').value.trim();
+        const pickup = document.getElementById('cust-pickup').value;
+        const notes  = document.getElementById('cust-notes').value.trim();
+
+        const orderItems = Object.values(cart).map(({ item, qty }) => ({
+            id: item.id, name: item.name, qty, unit: item.unit,
+            price: parseFloat(item.price),
+            subtotal: parseFloat(item.price) * qty,
+        }));
+        const total = orderItems.reduce((s, i) => s + i.subtotal, 0);
+
+        try {
+            const { error } = await sb.from('orders').insert({
+                client_id:      BURNETTS_CLIENT_ID,
+                customer_name:  name,
+                customer_phone: phone,
+                pickup_date:    pickup,
+                notes:          notes || null,
+                items:          orderItems,
+                total:          total.toFixed(2),
+                status:         'new',
+            });
+            if (error) throw error;
+
+            // Show success
+            document.getElementById('product-grid').classList.add('hidden');
+            document.getElementById('success-screen').classList.remove('hidden');
+            document.getElementById('success-name').textContent = name.split(' ')[0];
+            document.getElementById('success-date').textContent =
+                new Date(pickup + 'T12:00:00').toLocaleDateString('en-CA', { weekday: 'long', month: 'long', day: 'numeric' });
+        } catch (err) {
+            alert('Something went wrong: ' + err.message + '\n\nPlease call us at (705) 733-0232.');
+            btn.disabled = false;
+            btn.textContent = 'Place Order';
+        }
+    });
+
+    // ─── Init ─────────────────────────────────────────────────────────────────
+    loadItems();
+    </script>
+</body>
+</html>
