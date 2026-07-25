@@ -554,12 +554,6 @@
     </div>
 
     <script>
-        // ── Supabase REST — no SDK needed, plain fetch ──
-        var SB_URL  = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
-        var SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
-        var CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
-        var SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
-
         // ── Render one product card ──
         var CHECK_SVG = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         var PLACEHOLDER_SVG = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,118,0.45)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
@@ -596,21 +590,14 @@
                 + '</label>';
         }
 
-        // ── Load products via plain fetch (no SDK, no CDN) ──
+        // ── Load products via Cloudflare Function (server-side, no CORS) ──
         async function loadProducts() {
             var el = document.getElementById('products');
             try {
-                var params = new URLSearchParams({
-                    client_id:        'eq.' + CLIENT_ID,
-                    show_on_order_form: 'eq.true',
-                    active:           'eq.true',
-                    stock:            'gt.0',
-                    select:           'id,name,category,unit,price,image_url',
-                    order:            'category,name',
-                });
-                var res = await fetch(SB_URL + '/rest/v1/inventory?' + params, { headers: SB_HEADERS });
+                var res = await fetch('/products');
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 var items = await res.json();
+                if (items.error) throw new Error(items.error);
 
                 if (!items || items.length === 0) {
                     el.innerHTML = '<div class="products-loading">No packages available right now.<br>Call us at (705) 733-0232.</div>';
