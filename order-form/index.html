@@ -588,7 +588,7 @@
             for (var i = 1; i <= 10; i++) qtyOptions += '<option>' + i + '</option>';
 
             return '<label class="product-card" onclick="toggleCard(this)">'
-                + '<input type="checkbox" name="product" value="' + escapedName + '" data-price="' + priceNum + '">'
+                + '<input type="checkbox" name="product" value="' + escapedName + '" data-price="' + priceNum + '" data-id="' + item.id + '">'
                 + '<div class="check-box">' + CHECK_SVG + '</div>'
                 + imgEl
                 + '<div class="product-info">'
@@ -788,6 +788,10 @@
                     var qty = cb.closest('.product-card').querySelector('.qty-select').value;
                     return cb.value + ' x' + qty;
                 });
+                var lineItems = selected.map(function(cb) {
+                    var qty = cb.closest('.product-card').querySelector('.qty-select').value;
+                    return { id: cb.dataset.id, name: cb.value, qty: parseInt(qty) };
+                });
                 var total = document.getElementById('total-display').textContent;
                 payload = {
                     orderType: 'package',
@@ -795,6 +799,7 @@
                     first_name: firstName, last_name: lastName,
                     phone: phone, email: email,
                     items: items,
+                    lineItems: lineItems,
                     pickupDate: pickupDate,
                     pickupTime: pickupTimeDisplay,
                     total: total,

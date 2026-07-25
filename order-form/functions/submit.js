@@ -265,6 +265,24 @@ export async function onRequestPost({ request, env }) {
       subscribed: !!body.subscribe,
     });
 
+    // Decrement inventory stock for each ordered item
+    if (Array.isArray(body.lineItems)) {
+      for (const li of body.lineItems) {
+        if (!li.id || !li.qty) continue;
+        try {
+          await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/decrement_stock`, {
+            method: 'POST',
+            headers: {
+              'apikey': env.SUPABASE_ANON_KEY,
+              'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ item_id: li.id, qty: li.qty }),
+          });
+        } catch (_) {}
+      }
+    }
+
     // Save contact to Supabase
     await sbInsert(env, 'contacts', {
       client_id: env.BURNETTS_CLIENT_ID,
