@@ -15,7 +15,8 @@ const BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
 const DEMO_MODE = true;
 
 // Initialize Supabase Client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Optional chaining ensures DEMO_MODE is always defined even if CDN fails to load
+const supabase = window.supabase?.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) || null;
 
 // App Configuration
 const APP_CONFIG = {
