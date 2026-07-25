@@ -576,7 +576,8 @@
             // Escape for HTML attribute context
             var escapedName = name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
             var imgEl = item.image_url
-                ? '<img class="product-img" src="' + item.image_url + '" alt="' + escapedName + '" onerror="this.parentNode.innerHTML=\'<div class=\\\'product-img-placeholder\\\'>' + PLACEHOLDER_SVG.replace(/'/g, "\\'") + '</div>\'">'
+                ? '<img class="product-img" src="' + item.image_url + '" alt="' + escapedName + '" onload="this.style.opacity=1" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+                  + '<div class="product-img-placeholder" style="display:none">' + PLACEHOLDER_SVG + '</div>'
                 : '<div class="product-img-placeholder">' + PLACEHOLDER_SVG + '</div>';
 
             var priceNum = parseFloat(item.price) || 0;
