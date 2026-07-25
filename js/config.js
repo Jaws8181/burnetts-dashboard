@@ -10,9 +10,9 @@ const SUPABASE_URL = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
 const BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
 
-// DEMO_MODE = true  → demo logins work, all data is demo (for Shane's meeting)
-// DEMO_MODE = false → Supabase Auth required, real order data loads
-const DEMO_MODE = true;
+// DEMO_MODE is set as a var in index.html before any CDN loads — do not redefine here.
+// true  → demo logins, all data is demo (for Shane's meeting)
+// false → Supabase Auth required, real order data loads
 
 // Initialize Supabase Client
 // Optional chaining ensures DEMO_MODE is always defined even if CDN fails to load
