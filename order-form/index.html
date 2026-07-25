@@ -590,11 +590,11 @@
                 + '</label>';
         }
 
-        // ── Load products via Cloudflare Function (server-side, no CORS) ──
+        // ── Load products via Supabase Edge Function (no CORS issues) ──
         async function loadProducts() {
             var el = document.getElementById('products');
             try {
-                var res = await fetch('/products');
+                var res = await fetch('https://xlkbmabqsjyxcreqrlrw.supabase.co/functions/v1/burnetts-products');
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 var items = await res.json();
                 if (items.error) throw new Error(items.error);
