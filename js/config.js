@@ -1,19 +1,21 @@
 /**
  * ==========================================
- * CONFIGURATION - PocketBase & App Settings
+ * CONFIGURATION - Supabase & App Settings
  * ==========================================
- * Replace POCKETBASE_URL with your Railway deployment URL.
- * Format: https://your-service.up.railway.app
+ * BWA project: xlkbmabqsjyxcreqrlrw (us-east-2)
+ * Anon key is public by design — RLS policies protect data access.
  */
 
-const POCKETBASE_URL = 'https://pocketbase-production-81bc.up.railway.app';
+const SUPABASE_URL = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
+const BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
 
-// Set to true to show demo data without requiring PocketBase login
-// Set to false when going live with real users
-const DEMO_MODE = false;
+// DEMO_MODE = true  → demo logins work, all data is demo (for Shane's meeting)
+// DEMO_MODE = false → Supabase Auth required, real order data loads
+const DEMO_MODE = true;
 
-// Initialize PocketBase Client
-const pb = new PocketBase(POCKETBASE_URL);
+// Initialize Supabase Client
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // App Configuration
 const APP_CONFIG = {

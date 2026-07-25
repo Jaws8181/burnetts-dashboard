@@ -389,13 +389,15 @@ const Inventory = {
     },
 
     /**
-     * Update item in Supabase
+     * Update item stock in Supabase
+     * No-op in demo mode. In production, requires an inventory table in Supabase.
      */
-    async updatePocketBase(item) {
+    async updateSupabase(item) {
+        if (DEMO_MODE) return;
         try {
-            await pb.collection('inventory').update(item.id, { quantity: item.stock });
+            await supabase.from('inventory').update({ stock: item.stock }).eq('id', item.id);
         } catch (err) {
-            console.log('Inventory updated locally');
+            console.log('Inventory updated locally (no inventory table yet)');
         }
     }
 };

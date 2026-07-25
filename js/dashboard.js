@@ -272,11 +272,16 @@ const Dashboard = {
      * Load metrics from Supabase (or use demo data)
      */
     async loadMetrics() {
+        if (DEMO_MODE) return;
         try {
-            const orders = await pb.collection('orders').getList(1, 100, {
-                filter: `created >= "${new Date().toISOString().split('T')[0]} 00:00:00"`
-            });
+            const today = new Date().toISOString().split('T')[0];
+            const { data: orders } = await supabase
+                .from('orders')
+                .select('*')
+                .eq('client_id', BURNETTS_CLIENT_ID)
+                .gte('created_at', `${today}T00:00:00`);
             // Update metrics with real data if available
+            console.log(`Today's orders: ${orders?.length || 0}`);
         } catch (err) {
             console.log('Using demo data for dashboard metrics');
         }

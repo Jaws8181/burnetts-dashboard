@@ -394,36 +394,40 @@ const Orders = {
         if (order) order.status = newStatus;
         this.populateColumns();
         this.initDragAndDrop();
-        try {
-            await pb.collection('orders').update(orderId, { status: newStatus });
-        } catch {}
+        if (!DEMO_MODE) {
+            try {
+                await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+            } catch {}
+        }
         const statusLabels = { prepping: 'Prepping', ready: 'Ready for Pickup', completed: 'Picked Up' };
         App.showToast(`#${orderId} → ${statusLabels[newStatus] || newStatus}`, 'success');
     },
 
     /**
-     * Subscribe to PocketBase real-time new orders (production only)
+     * Subscribe to Supabase real-time new orders (production only)
      */
     subscribeToNewOrders() {
         if (DEMO_MODE) return;
         try {
-            pb.collection('orders').subscribe('*', (e) => {
-                if (e.action === 'create') {
+            supabase
+                .channel('orders-realtime')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => {
+                    const record = payload.new;
                     this.demoOrders.push({
-                        id: e.record.id,
-                        customer:    e.record.customer    || 'New Customer',
-                        items:       e.record.items       || [],
-                        pickup_time: e.record.pickup_time || '',
-                        status:      e.record.status      || 'new',
-                        total:       e.record.total       || 0,
-                        phone:       e.record.phone       || '',
+                        id:          record.id,
+                        customer:    record.customer_name  || 'New Customer',
+                        items:       Array.isArray(record.items) ? record.items : [],
+                        pickup_time: record.pickup_time    || '',
+                        status:      record.status         || 'new',
+                        total:       parseFloat(record.total) || 0,
+                        phone:       record.customer_phone || '',
                     });
                     this.populateColumns();
                     this.initDragAndDrop();
                     this.playNewOrderSound();
-                    App.showToast(`🔔 New order from ${e.record.customer || 'customer'}!`, 'info');
-                }
-            });
+                    App.showToast(`🔔 New order from ${record.customer_name || 'customer'}!`, 'info');
+                })
+                .subscribe();
         } catch (err) {
             console.log('Real-time subscription not available');
         }

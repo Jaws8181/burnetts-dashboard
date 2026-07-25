@@ -19,16 +19,16 @@ const App = {
         // Setup logout handler
         document.getElementById('logout-btn')?.addEventListener('click', () => this.handleLogout());
 
-        // Try to initialize PocketBase auth
+        // Try to initialize Supabase auth
         try {
             if (!DEMO_MODE) {
                 await Auth.init();
             } else {
-                console.log('Running in demo mode - PocketBase not configured');
+                console.log('Running in demo mode - Supabase auth bypassed');
                 this.showLogin();
             }
         } catch (err) {
-            console.log('PocketBase not available, running in demo mode');
+            console.log('Supabase auth not available, running in demo mode');
             this.showLogin();
         }
     },
@@ -53,7 +53,7 @@ const App = {
 
             try {
                 if (!DEMO_MODE) {
-                    // Production: Use PocketBase auth
+                    // Production: Use Supabase auth
                     await Auth.signIn(email, password);
                 } else {
                     // Demo mode: Simulate authentication

@@ -2,8 +2,8 @@
  * ==========================================
  * AUTHENTICATION MODULE
  * ==========================================
- * Handles PocketBase auth, session management, and role-based routing.
- * PocketBase automatically persists sessions to localStorage.
+ * Handles Supabase auth, session management, and role-based routing.
+ * Supabase persists sessions to localStorage automatically.
  */
 
 const Auth = {
@@ -12,18 +12,19 @@ const Auth = {
 
     /**
      * Initialize authentication state
-     * PocketBase restores session from localStorage automatically.
+     * Supabase restores session from localStorage automatically.
      */
     async init() {
         // Check for existing valid session
-        if (pb.authStore.isValid) {
-            await this.handleSession(pb.authStore.model);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            await this.handleSession(session.user);
         }
 
         // Listen for auth state changes
-        pb.authStore.onChange(async (token, model) => {
-            if (model) {
-                await this.handleSession(model);
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session) {
+                await this.handleSession(session.user);
             } else {
                 this.handleSignOut();
             }
@@ -34,14 +35,15 @@ const Auth = {
      * Sign in with email and password
      */
     async signIn(email, password) {
-        // Demo mode — bypass PocketBase if URL not configured
+        // Demo mode — bypass Supabase auth
         if (DEMO_MODE) {
             return this.demoSignIn(email);
         }
 
         try {
-            const authData = await pb.collection('users').authWithPassword(email, password);
-            return authData;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) throw error;
+            return data;
         } catch (err) {
             throw new Error('Invalid email or password');
         }
@@ -51,33 +53,47 @@ const Auth = {
      * Sign out the current user
      */
     async signOut() {
-        pb.authStore.clear();
+        await supabase.auth.signOut();
         this.handleSignOut();
     },
 
     /**
      * Handle successful session
      */
-    async handleSession(model) {
-        this.currentUser = model;
+    async handleSession(user) {
+        this.currentUser = user;
 
-        // Try to fetch full profile from 'profiles' collection
+        // Try to fetch full profile from Supabase profiles table
         if (!DEMO_MODE) {
             try {
-                const profile = await pb.collection('profiles').getOne(model.id);
-                this.currentProfile = profile;
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    this.currentProfile = profile;
+                } else {
+                    // Fallback: assign role by email
+                    this.currentProfile = {
+                        id: user.id,
+                        full_name: user.email,
+                        email: user.email,
+                        role: this.getRoleByEmail(user.email),
+                    };
+                }
             } catch (err) {
-                // Fallback: assign role by email for demo accounts
                 this.currentProfile = {
-                    id: model.id,
-                    full_name: model.name || model.username || model.email,
-                    email: model.email,
-                    role: this.getRoleByEmail(model.email),
+                    id: user.id,
+                    full_name: user.email,
+                    email: user.email,
+                    role: this.getRoleByEmail(user.email),
                 };
             }
         } else {
             // Demo mode profile
-            this.currentProfile = this.getDemoProfile(model.email);
+            this.currentProfile = this.getDemoProfile(user.email);
         }
 
         App.showApp();
