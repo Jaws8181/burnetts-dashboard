@@ -1,4 +1,4 @@
-const CACHE_NAME = 'burnetts-dashboard-v4';
+const CACHE_NAME = 'burnetts-dashboard-v5';
 const CACHE_URLS = [
   '/burnetts-dashboard/',
   '/burnetts-dashboard/index.html',
