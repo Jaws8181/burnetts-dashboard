@@ -187,6 +187,20 @@
             cursor: not-allowed;
         }
 
+        /* Category header */
+        .category-header {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--tan);
+            opacity: 0.75;
+            padding: 14px 4px 4px;
+            border-bottom: 1px solid rgba(196,154,118,0.18);
+            margin-bottom: 2px;
+        }
+        .category-header:first-child { padding-top: 4px; }
+
         /* Loading state */
         .products-loading {
             text-align: center;
@@ -603,7 +617,25 @@
                     el.innerHTML = '<div class="products-loading">No packages available right now.<br>Call us at (705) 733-0232.</div>';
                     return;
                 }
-                el.innerHTML = items.map(renderProductCard).join('');
+
+                // Group by category — Packages always first
+                var groups = {};
+                items.forEach(function(item) {
+                    var cat = item.category || 'Other';
+                    if (!groups[cat]) groups[cat] = [];
+                    groups[cat].push(item);
+                });
+                var catOrder = Object.keys(groups).sort(function(a, b) {
+                    if (a === 'Packages') return -1;
+                    if (b === 'Packages') return 1;
+                    return a.localeCompare(b);
+                });
+                var html = '';
+                catOrder.forEach(function(cat) {
+                    html += '<div class="category-header">' + cat + '</div>';
+                    html += groups[cat].map(renderProductCard).join('');
+                });
+                el.innerHTML = html;
             } catch(err) {
                 console.error('Failed to load products:', err);
                 el.innerHTML = '<div class="products-loading" style="color:#f87171;">Could not load items. Call us at (705) 733-0232.</div>';
