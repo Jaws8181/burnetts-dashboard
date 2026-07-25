@@ -277,12 +277,10 @@ const Inventory = {
             statusBadge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/30 text-green-400 border border-green-800/50">In Stock</span>';
         }
 
-        const safeId = `'${item.id}'`;
-
         // Order form toggle pill
         const toggleBtn = Auth.canViewFinancials() ? `
             <td class="px-6 py-4 text-center">
-                <button onclick="Inventory.toggleOrderForm(${safeId})"
+                <button data-action="toggle" data-id="${item.id}"
                     class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${item.show_on_order_form ? 'bg-brand-600' : 'bg-gray-600'}"
                     title="${item.show_on_order_form ? 'Remove from order form' : 'Add to order form'}">
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${item.show_on_order_form ? 'translate-x-6' : 'translate-x-1'}"></span>
@@ -292,12 +290,12 @@ const Inventory = {
         const actionsCol = Auth.canViewFinancials() ? `
             <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-2">
-                    <button onclick="Inventory.showEditModal(${safeId})" class="p-1.5 text-gray-400 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors" title="Edit">
+                    <button data-action="edit" data-id="${item.id}" class="p-1.5 text-gray-400 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors" title="Edit">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                         </svg>
                     </button>
-                    <button onclick="Inventory.deleteItem(${safeId})" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
+                    <button data-action="delete" data-id="${item.id}" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -371,6 +369,21 @@ const Inventory = {
             document.getElementById('inventory-search')?.addEventListener('input', () => this.renderTable());
             document.getElementById('category-filter')?.addEventListener('change', () => this.renderTable());
             document.getElementById('stock-filter')?.addEventListener('change', () => this.renderTable());
+
+            // Delegated click handler for table row buttons (edit / delete / toggle)
+            const tbody = document.getElementById('inventory-tbody');
+            if (tbody) {
+                tbody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('[data-action]');
+                    if (!btn) return;
+                    const id = btn.dataset.id;
+                    const action = btn.dataset.action;
+                    if (action === 'edit')   Inventory.showEditModal(id);
+                    if (action === 'delete') Inventory.deleteItem(id);
+                    if (action === 'toggle') Inventory.toggleOrderForm(id);
+                });
+            }
+
             // Image file picker preview
             document.getElementById('item-image-file')?.addEventListener('change', (e) => {
                 const file = e.target.files[0];
