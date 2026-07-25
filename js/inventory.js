@@ -275,12 +275,12 @@ const Inventory = {
                 <td class="px-6 py-4">${statusBadge}</td>
                 <td class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-2">
-                        <button onclick="Inventory.quickUpdate(${item.id})" class="p-1.5 text-gray-400 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors" title="Update Stock">
+                        ${Auth.canViewFinancials() ? `
+                        <button onclick="Inventory.showEditModal(${item.id})" class="p-1.5 text-gray-400 hover:text-brand-400 hover:bg-brand-500/10 rounded-lg transition-colors" title="Edit Item">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                             </svg>
                         </button>
-                        ${Auth.canViewFinancials() ? `
                         <button onclick="Inventory.deleteItem(${item.id})" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
@@ -321,19 +321,37 @@ const Inventory = {
     },
 
     /**
-     * Quick update stock quantity
+     * Show edit modal pre-filled with item data (manager+ only)
      */
-    quickUpdate(itemId) {
+    showEditModal(itemId) {
         const item = this.demoInventory.find(i => i.id === itemId);
         if (!item) return;
 
-        const newStock = prompt(`Update stock for "${item.name}"\nCurrent: ${item.stock} ${item.unit}\n\nEnter new quantity:`);
-        if (newStock !== null && !isNaN(newStock)) {
-            item.stock = parseInt(newStock);
+        document.getElementById('inventory-modal').classList.remove('hidden');
+        document.getElementById('inventory-modal-title').textContent = 'Edit Item';
+
+        // Pre-fill all fields
+        document.getElementById('item-id').value = item.id;
+        document.getElementById('item-name').value = item.name;
+        document.getElementById('item-category').value = item.category;
+        document.getElementById('item-unit').value = item.unit;
+        document.getElementById('item-stock').value = item.stock ?? 0;
+        document.getElementById('item-price').value = item.price ?? 0;
+
+        const form = document.getElementById('inventory-form');
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            item.name = formData.get('name');
+            item.category = formData.get('category');
+            item.unit = formData.get('unit');
+            item.stock = parseInt(formData.get('stock')) || 0;
+            item.price = parseFloat(formData.get('price')) || 0;
             this.renderTable();
+            this.hideModal();
             this.updateSupabase(item);
-            App.showToast(`${item.name} stock updated to ${newStock}`, 'success');
-        }
+            App.showToast(`${item.name} updated`, 'success');
+        };
     },
 
     /**
@@ -389,15 +407,21 @@ const Inventory = {
     },
 
     /**
-     * Update item stock in Supabase
-     * No-op in demo mode. In production, requires an inventory table in Supabase.
+     * Save item to Supabase (all fields).
+     * No-op in demo mode. Silently skips if inventory table doesn't exist yet.
      */
     async updateSupabase(item) {
-        if (DEMO_MODE) return;
+        if (DEMO_MODE || !supabase) return;
         try {
-            await supabase.from('inventory').update({ stock: item.stock }).eq('id', item.id);
+            await supabase.from('inventory').update({
+                name: item.name,
+                category: item.category,
+                unit: item.unit,
+                stock: item.stock,
+                price: item.price,
+            }).eq('id', item.id);
         } catch (err) {
-            console.log('Inventory updated locally (no inventory table yet)');
+            console.log('Inventory updated locally (Supabase inventory table not yet created):', err.message);
         }
     }
 };
