@@ -170,6 +170,7 @@ const Auth = {
      */
     getRoleByEmail(email) {
         if (email === 'admin@burnettsbutcher.com') return ROLES.SUPERADMIN;
+        if (email === 'james@bwabarrie.ca') return ROLES.SUPERADMIN;
         if (email === 'shane@burnettsbutcher.com') return ROLES.MANAGER;
         if (email === 'shane.burnett22@hotmail.com') return ROLES.MANAGER;
         return ROLES.STAFF;
