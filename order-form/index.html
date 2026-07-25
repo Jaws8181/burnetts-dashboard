@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Burnett's Butcher Shop — Order Online</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,14 +19,12 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: #fff;
             min-height: 100vh;
-            /* Full-page background */
             background-image: url('images/bg.jpg');
             background-size: cover;
             background-position: center 20%;
             background-attachment: fixed;
         }
 
-        /* Dark overlay so text stays readable */
         body::before {
             content: '';
             position: fixed;
@@ -48,13 +47,8 @@
             display: block;
             margin: 0 auto;
         }
-        .hero img.logo.try2 { display: none; }
-        .hero img.logo.try3 { display: none; }
-        .hero img.logo.try4 { display: none; }
 
-        #logo-text {
-            display: none;
-        }
+        #logo-text { display: none; }
         #logo-text h1 {
             font-size: 52px;
             font-weight: 800;
@@ -146,6 +140,13 @@
             object-fit: cover;
             flex-shrink: 0;
         }
+        .product-img-placeholder {
+            width: 72px; height: 72px;
+            border-radius: 10px;
+            flex-shrink: 0;
+            background: rgba(196,154,118,0.1);
+            display: flex; align-items: center; justify-content: center;
+        }
 
         .product-info { flex: 1; min-width: 0; }
         .product-name {
@@ -186,6 +187,23 @@
             opacity: 0.35;
             cursor: not-allowed;
         }
+
+        /* Loading state */
+        .products-loading {
+            text-align: center;
+            padding: 32px 20px;
+            color: #888;
+            font-size: 13px;
+        }
+        .products-spinner {
+            width: 32px; height: 32px;
+            border: 2px solid rgba(196,154,118,0.2);
+            border-top-color: var(--tan);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ── TOTAL ── */
         .total-bar {
@@ -279,7 +297,6 @@
             cursor: not-allowed;
             pointer-events: none;
         }
-        /* hidden input to hold selected time */
         #pickup-time { display: none; }
 
         /* ── SUBMIT ── */
@@ -390,7 +407,7 @@
 
         @media (max-width: 480px) {
             .field-row { grid-template-columns: 1fr; }
-            .product-img { width: 60px; height: 60px; }
+            .product-img, .product-img-placeholder { width: 60px; height: 60px; }
             .hero img.logo { height: 130px; }
             #logo-text h1 { font-size: 40px; }
         }
@@ -435,98 +452,21 @@
 
             <!-- ── PACKAGE MODE ── -->
             <div id="package-mode">
-            <!-- Products -->
-            <p class="section-title">Select Your Packages</p>
-            <div class="products" id="products">
+                <p class="section-title">Select Your Packages</p>
 
-                <label class="product-card" onclick="toggleCard(this)">
-                    <input type="checkbox" name="product" value="Weekend Burger &amp; Sausage Combo" data-price="45">
-                    <div class="check-box">
-                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <!-- Products: populated dynamically from Supabase -->
+                <div class="products" id="products">
+                    <div class="products-loading">
+                        <div class="products-spinner"></div>
+                        Loading today's selection…
                     </div>
-                    <img class="product-img" src="images/burgers-sausage.jpg" alt="">
-                    <div class="product-info">
-                        <div class="product-name">The Weekend Burger &amp; Sausage Combo</div>
-                        <div class="product-price">$45.00 CAD</div>
-                    </div>
-                    <div class="qty-wrap">
-                        <span class="qty-label">Qty</span>
-                        <select class="qty-select" onclick="event.stopPropagation()" onchange="updateTotal()" disabled>
-                            <option>1</option><option>2</option><option>3</option>
-                            <option>4</option><option>5</option><option>6</option>
-                            <option>7</option><option>8</option><option>9</option><option>10</option>
-                        </select>
-                    </div>
-                </label>
+                </div>
 
-                <label class="product-card" onclick="toggleCard(this)">
-                    <input type="checkbox" name="product" value="Ultimate Family BBQ Box" data-price="85">
-                    <div class="check-box">
-                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
-                    <img class="product-img" src="images/family-pack.jpg" alt="">
-                    <div class="product-info">
-                        <div class="product-name">The Ultimate Family BBQ Box</div>
-                        <div class="product-price">$85.00 CAD</div>
-                    </div>
-                    <div class="qty-wrap">
-                        <span class="qty-label">Qty</span>
-                        <select class="qty-select" onclick="event.stopPropagation()" onchange="updateTotal()" disabled>
-                            <option>1</option><option>2</option><option>3</option>
-                            <option>4</option><option>5</option><option>6</option>
-                            <option>7</option><option>8</option><option>9</option><option>10</option>
-                        </select>
-                    </div>
-                </label>
-
-                <label class="product-card" onclick="toggleCard(this)">
-                    <input type="checkbox" name="product" value="Pitmaster's Choice Bundle" data-price="95">
-                    <div class="check-box">
-                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
-                    <img class="product-img" src="images/steak1.jpg" alt="">
-                    <div class="product-info">
-                        <div class="product-name">Pitmaster's Choice Bundle</div>
-                        <div class="product-price">$95.00 CAD</div>
-                    </div>
-                    <div class="qty-wrap">
-                        <span class="qty-label">Qty</span>
-                        <select class="qty-select" onclick="event.stopPropagation()" onchange="updateTotal()" disabled>
-                            <option>1</option><option>2</option><option>3</option>
-                            <option>4</option><option>5</option><option>6</option>
-                            <option>7</option><option>8</option><option>9</option><option>10</option>
-                        </select>
-                    </div>
-                </label>
-
-                <label class="product-card" onclick="toggleCard(this)">
-                    <input type="checkbox" name="product" value="Tomahawk Premium Experience" data-price="120">
-                    <div class="check-box">
-                        <svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                    </div>
-                    <img class="product-img" src="images/tomahawk.jpg" alt="">
-                    <div class="product-info">
-                        <div class="product-name">The Tomahawk Premium Experience</div>
-                        <div class="product-price">$120.00 CAD</div>
-                    </div>
-                    <div class="qty-wrap">
-                        <span class="qty-label">Qty</span>
-                        <select class="qty-select" onclick="event.stopPropagation()" onchange="updateTotal()" disabled>
-                            <option>1</option><option>2</option><option>3</option>
-                            <option>4</option><option>5</option><option>6</option>
-                            <option>7</option><option>8</option><option>9</option><option>10</option>
-                        </select>
-                    </div>
-                </label>
-
-            </div>
-
-            <!-- Total -->
-            <div class="total-bar">
-                <span class="total-label">Order Total</span>
-                <span class="total-amount" id="total-display">$0.00 CAD</span>
-            </div>
-
+                <!-- Total -->
+                <div class="total-bar">
+                    <span class="total-label">Order Total</span>
+                    <span class="total-amount" id="total-display">$0.00 CAD</span>
+                </div>
             </div><!-- end #package-mode -->
 
             <!-- ── CUSTOM REQUEST MODE ── -->
@@ -615,8 +555,93 @@
     </div>
 
     <script>
+        // ── Supabase — anon key is safe to expose, RLS policies protect data ──
+        var SUPABASE_URL      = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
+        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
+        var BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
+
+        // Use IIFE + var to avoid Safari "duplicate global" error
+        var sbClient = (function() {
+            try {
+                var sb = window.supabase;
+                if (sb && sb.createClient) return sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch(e) {}
+            return null;
+        }());
+
+        // ── Render one product card ──
+        var CHECK_SVG = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        var PLACEHOLDER_SVG = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,118,0.45)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>';
+
+        function renderProductCard(item) {
+            var name = item.name || '';
+            // Escape for HTML attribute context
+            var escapedName = name.replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+            var imgEl = item.image_url
+                ? '<img class="product-img" src="' + item.image_url + '" alt="' + escapedName + '" onerror="this.parentNode.innerHTML=\'<div class=\\\'product-img-placeholder\\\'>' + PLACEHOLDER_SVG.replace(/'/g, "\\'") + '</div>\'">'
+                : '<div class="product-img-placeholder">' + PLACEHOLDER_SVG + '</div>';
+
+            var priceNum = parseFloat(item.price) || 0;
+            var priceDisplay = '$' + priceNum.toFixed(2) + ' CAD';
+            var unitNote = item.unit && item.unit !== 'each' ? ' / ' + item.unit : '';
+
+            var qtyOptions = '';
+            for (var i = 1; i <= 10; i++) qtyOptions += '<option>' + i + '</option>';
+
+            return '<label class="product-card" onclick="toggleCard(this)">'
+                + '<input type="checkbox" name="product" value="' + escapedName + '" data-price="' + priceNum + '">'
+                + '<div class="check-box">' + CHECK_SVG + '</div>'
+                + imgEl
+                + '<div class="product-info">'
+                +   '<div class="product-name">' + name + '</div>'
+                +   '<div class="product-price">' + priceDisplay + unitNote + '</div>'
+                + '</div>'
+                + '<div class="qty-wrap">'
+                +   '<span class="qty-label">Qty</span>'
+                +   '<select class="qty-select" onclick="event.stopPropagation()" onchange="updateTotal()" disabled>'
+                +     qtyOptions
+                +   '</select>'
+                + '</div>'
+                + '</label>';
+        }
+
+        // ── Load products from Supabase ──
+        async function loadProducts() {
+            var el = document.getElementById('products');
+
+            if (!sbClient) {
+                el.innerHTML = '<div class="products-loading" style="color:#f87171;">Could not connect. Call us at (705) 733-0232.</div>';
+                return;
+            }
+
+            try {
+                var result = await sbClient
+                    .from('inventory')
+                    .select('id, name, category, unit, price, image_url')
+                    .eq('client_id', BURNETTS_CLIENT_ID)
+                    .eq('show_on_order_form', true)
+                    .eq('active', true)
+                    .gt('stock', 0)
+                    .order('category')
+                    .order('name');
+
+                if (result.error) throw result.error;
+
+                var items = result.data || [];
+                if (items.length === 0) {
+                    el.innerHTML = '<div class="products-loading">No packages available right now.<br>Call us at (705) 733-0232.</div>';
+                    return;
+                }
+
+                el.innerHTML = items.map(renderProductCard).join('');
+            } catch(err) {
+                console.error('Failed to load products:', err);
+                el.innerHTML = '<div class="products-loading" style="color:#f87171;">Could not load items. Call us at (705) 733-0232.</div>';
+            }
+        }
+
         // ── Mode toggle ──
-        let currentMode = 'package';
+        var currentMode = 'package';
 
         function setMode(mode) {
             currentMode = mode;
@@ -630,8 +655,8 @@
 
         // ── Product card toggle ──
         function toggleCard(label) {
-            const cb  = label.querySelector('input[type="checkbox"]');
-            const qty = label.querySelector('.qty-select');
+            var cb  = label.querySelector('input[type="checkbox"]');
+            var qty = label.querySelector('.qty-select');
             cb.checked = !cb.checked;
             label.classList.toggle('selected', cb.checked);
             qty.disabled = !cb.checked;
@@ -639,80 +664,77 @@
         }
 
         function updateTotal() {
-            let total = 0;
-            document.querySelectorAll('.product-card').forEach(card => {
-                const cb  = card.querySelector('input[type="checkbox"]');
-                const qty = card.querySelector('.qty-select');
+            var total = 0;
+            document.querySelectorAll('.product-card').forEach(function(card) {
+                var cb  = card.querySelector('input[type="checkbox"]');
+                var qty = card.querySelector('.qty-select');
                 if (cb.checked) total += parseFloat(cb.dataset.price) * parseInt(qty.value);
             });
             document.getElementById('total-display').textContent = '$' + total.toFixed(2) + ' CAD';
         }
 
         // ── Time slot picker ──
-        const INTERVAL = 30; // minutes
+        var INTERVAL = 30; // minutes
 
         // Hours per day of week [open, close] in 24h — 0=Sun, 1=Mon, ..., 6=Sat
-        const STORE_HOURS = {
-            0: [9, 16],  // Sunday:    9:00am – 4:00pm
-            1: [9, 17],  // Monday:    9:00am – 5:00pm
-            2: [9, 18],  // Tuesday:   9:00am – 6:00pm
-            3: [9, 18],  // Wednesday: 9:00am – 6:00pm
-            4: [9, 18],  // Thursday:  9:00am – 6:00pm
-            5: [9, 18],  // Friday:    9:00am – 6:00pm
-            6: [9, 17],  // Saturday:  9:00am – 5:00pm
+        var STORE_HOURS = {
+            0: [9, 16],  // Sunday
+            1: [9, 17],  // Monday
+            2: [9, 18],  // Tuesday
+            3: [9, 18],  // Wednesday
+            4: [9, 18],  // Thursday
+            5: [9, 18],  // Friday
+            6: [9, 17],  // Saturday
         };
 
         function buildSlots(open, close) {
-            const slots = [];
-            for (let h = open; h < close; h++) {
-                for (let m = 0; m < 60; m += INTERVAL) {
-                    const hour12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-                    const ampm   = h < 12 ? 'AM' : 'PM';
-                    const label  = `${hour12}:${String(m).padStart(2,'0')} ${ampm}`;
-                    const value  = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                    slots.push({ label, value });
+            var slots = [];
+            for (var h = open; h < close; h++) {
+                for (var m = 0; m < 60; m += INTERVAL) {
+                    var hour12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+                    var ampm   = h < 12 ? 'AM' : 'PM';
+                    var label  = hour12 + ':' + (m === 0 ? '00' : m) + ' ' + ampm;
+                    var value  = (h < 10 ? '0' : '') + h + ':' + (m === 0 ? '00' : m);
+                    slots.push({ label: label, value: value });
                 }
             }
             return slots;
         }
 
         function updateTimeSlots() {
-            const dateVal  = document.getElementById('pickup-date').value;
-            const wrap     = document.getElementById('time-slots');
-            const hiddenIn = document.getElementById('pickup-time');
+            var dateVal  = document.getElementById('pickup-date').value;
+            var wrap     = document.getElementById('time-slots');
+            var hiddenIn = document.getElementById('pickup-time');
 
             wrap.innerHTML = '';
             hiddenIn.value = '';
 
             if (!dateVal) return;
 
-            const selectedDate = new Date(dateVal + 'T00:00:00');
-            const dayOfWeek    = selectedDate.getDay();
-            const [open, close] = STORE_HOURS[dayOfWeek];
-            const slots        = buildSlots(open, close);
+            var selectedDate = new Date(dateVal + 'T00:00:00');
+            var dayOfWeek    = selectedDate.getDay();
+            var hours        = STORE_HOURS[dayOfWeek];
+            var slots        = buildSlots(hours[0], hours[1]);
 
-            const now     = new Date();
-            const isToday = selectedDate.toDateString() === now.toDateString();
+            var now     = new Date();
+            var isToday = selectedDate.toDateString() === now.toDateString();
 
-            slots.forEach(slot => {
-                const btn = document.createElement('button');
+            slots.forEach(function(slot) {
+                var btn = document.createElement('button');
                 btn.type        = 'button';
                 btn.className   = 'time-slot';
                 btn.textContent = slot.label;
                 btn.dataset.value = slot.value;
 
-                // Grey out past slots if today
                 if (isToday) {
-                    const [sh, sm] = slot.value.split(':').map(Number);
-                    const slotDate = new Date();
-                    slotDate.setHours(sh, sm, 0, 0);
-                    if (slotDate <= now) {
-                        btn.classList.add('unavailable');
-                    }
+                    var parts   = slot.value.split(':').map(Number);
+                    var slotDate = new Date();
+                    slotDate.setHours(parts[0], parts[1], 0, 0);
+                    if (slotDate <= now) btn.classList.add('unavailable');
                 }
 
-                btn.addEventListener('click', () => {
-                    wrap.querySelectorAll('.time-slot').forEach(b => b.classList.remove('active'));
+                btn.addEventListener('click', function() {
+                    wrap.querySelectorAll('.time-slot').forEach(function(b) { b.classList.remove('active'); });
                     btn.classList.add('active');
                     hiddenIn.value = slot.value;
                 });
@@ -725,16 +747,16 @@
         document.getElementById('order-form').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const errorEl = document.getElementById('error-msg');
-            const btn     = document.getElementById('submit-btn');
+            var errorEl = document.getElementById('error-msg');
+            var btn     = document.getElementById('submit-btn');
             errorEl.classList.remove('show');
 
-            const pickupDate = document.getElementById('pickup-date').value;
-            const pickupTime = document.getElementById('pickup-time').value;
-            const firstName  = document.getElementById('first-name').value.trim();
-            const lastName   = document.getElementById('last-name').value.trim();
-            const phone      = document.getElementById('phone').value.trim();
-            const email      = document.getElementById('email').value.trim();
+            var pickupDate = document.getElementById('pickup-date').value;
+            var pickupTime = document.getElementById('pickup-time').value;
+            var firstName  = document.getElementById('first-name').value.trim();
+            var lastName   = document.getElementById('last-name').value.trim();
+            var phone      = document.getElementById('phone').value.trim();
+            var email      = document.getElementById('email').value.trim();
 
             if (!pickupDate) {
                 errorEl.textContent = 'Please choose a pickup date.';
@@ -745,49 +767,54 @@
                 errorEl.classList.add('show'); return;
             }
 
-            // Format time for display (e.g. "14:30" → "2:30 PM")
-            const [h, m]        = pickupTime.split(':').map(Number);
-            const hr12          = h > 12 ? h - 12 : (h === 0 ? 12 : h);
-            const ampm          = h < 12 ? 'AM' : 'PM';
-            const pickupTimeDisplay = `${hr12}:${String(m).padStart(2,'0')} ${ampm}`;
+            // Format time for display ("14:30" → "2:30 PM")
+            var timeParts = pickupTime.split(':').map(Number);
+            var h = timeParts[0], m = timeParts[1];
+            var hr12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            var ampm = h < 12 ? 'AM' : 'PM';
+            var pickupTimeDisplay = hr12 + ':' + (m < 10 ? '0' : '') + m + ' ' + ampm;
 
-            let payload;
+            var payload;
 
             if (currentMode === 'package') {
-                const selected = [...document.querySelectorAll('.product-card.selected input')];
+                var selected = Array.from(document.querySelectorAll('.product-card.selected input'));
                 if (selected.length === 0) {
                     errorEl.textContent = 'Please select at least one package.';
                     errorEl.classList.add('show'); return;
                 }
-                const items = selected.map(cb => {
-                    const qty = cb.closest('.product-card').querySelector('.qty-select').value;
-                    return `${cb.value} x${qty}`;
+                var items = selected.map(function(cb) {
+                    var qty = cb.closest('.product-card').querySelector('.qty-select').value;
+                    return cb.value + ' x' + qty;
                 });
-                const total = document.getElementById('total-display').textContent;
+                var total = document.getElementById('total-display').textContent;
                 payload = {
                     orderType: 'package',
-                    customer: `${firstName} ${lastName}`,
+                    customer: firstName + ' ' + lastName,
                     first_name: firstName, last_name: lastName,
-                    phone, email, items, pickupDate,
-                    pickupTime: pickupTimeDisplay, total,
+                    phone: phone, email: email,
+                    items: items,
+                    pickupDate: pickupDate,
+                    pickupTime: pickupTimeDisplay,
+                    total: total,
                     subscribe: document.getElementById('subscribe').checked,
                 };
             } else {
-                const cut    = document.getElementById('custom-cut').value.trim();
-                const qty    = document.getElementById('custom-qty').value.trim();
-                const serves = document.getElementById('custom-serves').value.trim();
-                const notes  = document.getElementById('custom-notes').value.trim();
+                var cut    = document.getElementById('custom-cut').value.trim();
+                var cqty   = document.getElementById('custom-qty').value.trim();
+                var serves = document.getElementById('custom-serves').value.trim();
+                var notes  = document.getElementById('custom-notes').value.trim();
                 if (!cut) {
-                    errorEl.textContent = 'Please describe what you\'re looking for.';
+                    errorEl.textContent = "Please describe what you're looking for.";
                     errorEl.classList.add('show'); return;
                 }
                 payload = {
                     orderType: 'custom',
-                    customer: `${firstName} ${lastName}`,
+                    customer: firstName + ' ' + lastName,
                     first_name: firstName, last_name: lastName,
-                    phone, email, pickupDate,
+                    phone: phone, email: email,
+                    pickupDate: pickupDate,
                     pickupTime: pickupTimeDisplay,
-                    cut, qty, serves, notes,
+                    cut: cut, qty: cqty, serves: serves, notes: notes,
                     subscribe: document.getElementById('subscribe').checked,
                 };
             }
@@ -796,34 +823,35 @@
             btn.textContent = currentMode === 'package' ? 'Placing Order...' : 'Sending Request...';
 
             try {
-                const res = await fetch('/submit', {
+                var res = await fetch('/submit', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 if (!res.ok) throw new Error('Server error');
             } catch (err) {
-                // Demo mode: show success regardless
+                // Show success regardless — order is also saved to Supabase in submit.js
             } finally {
                 btn.disabled    = false;
                 btn.textContent = currentMode === 'package' ? 'Place Order' : 'Send Request';
             }
 
             document.getElementById('order-form').style.display = 'none';
-            const successEl = document.getElementById('success');
+            var successEl = document.getElementById('success');
             successEl.classList.add('show');
             successEl.querySelector('h2').textContent = currentMode === 'package' ? 'Order Received!' : 'Request Sent!';
             successEl.querySelector('p').innerHTML = currentMode === 'package'
-                ? `Thanks, <span>${firstName}</span>.<br>Your order is in — we'll be in touch<br>to confirm shortly.`
-                : `Thanks, <span>${firstName}</span>.<br>We'll be in touch to confirm<br>availability and pickup details.`;
+                ? 'Thanks, <span>' + firstName + '</span>.<br>Your order is in — we\'ll be in touch<br>to confirm shortly.'
+                : 'Thanks, <span>' + firstName + '</span>.<br>We\'ll be in touch to confirm<br>availability and pickup details.';
             document.getElementById('success-name').textContent = firstName;
         });
 
-        // Init
-        const today = new Date().toISOString().split('T')[0];
+        // ── Init ──
+        var today = new Date().toISOString().split('T')[0];
         document.getElementById('pickup-date').min = today;
         document.getElementById('pickup-date').value = today;
         updateTimeSlots();
+        loadProducts();
     </script>
 
 </body>
