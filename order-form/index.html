@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Burnett's Butcher Shop — Order Online</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -555,19 +554,11 @@
     </div>
 
     <script>
-        // ── Supabase — anon key is safe to expose, RLS policies protect data ──
-        var SUPABASE_URL      = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
-        var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
-        var BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
-
-        // Use IIFE + var to avoid Safari "duplicate global" error
-        var sbClient = (function() {
-            try {
-                var sb = window.supabase;
-                if (sb && sb.createClient) return sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            } catch(e) {}
-            return null;
-        }());
+        // ── Supabase REST — no SDK needed, plain fetch ──
+        var SB_URL  = 'https://xlkbmabqsjyxcreqrlrw.supabase.co';
+        var SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsa2JtYWJxc2p5eGNyZXFybHJ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1ODkzMTMsImV4cCI6MjA5ODE2NTMxM30.VQq-pc6QvqMQbUyOgk2cWtdNZiIv4rjmW9GSAAMVl1E';
+        var CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
+        var SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
 
         // ── Render one product card ──
         var CHECK_SVG = '<svg width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5L4.5 8.5L11 1.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -605,34 +596,26 @@
                 + '</label>';
         }
 
-        // ── Load products from Supabase ──
+        // ── Load products via plain fetch (no SDK, no CDN) ──
         async function loadProducts() {
             var el = document.getElementById('products');
-
-            if (!sbClient) {
-                el.innerHTML = '<div class="products-loading" style="color:#f87171;">Could not connect. Call us at (705) 733-0232.</div>';
-                return;
-            }
-
             try {
-                var result = await sbClient
-                    .from('inventory')
-                    .select('id, name, category, unit, price, image_url')
-                    .eq('client_id', BURNETTS_CLIENT_ID)
-                    .eq('show_on_order_form', true)
-                    .eq('active', true)
-                    .gt('stock', 0)
-                    .order('category')
-                    .order('name');
+                var params = new URLSearchParams({
+                    client_id:        'eq.' + CLIENT_ID,
+                    show_on_order_form: 'eq.true',
+                    active:           'eq.true',
+                    stock:            'gt.0',
+                    select:           'id,name,category,unit,price,image_url',
+                    order:            'category,name',
+                });
+                var res = await fetch(SB_URL + '/rest/v1/inventory?' + params, { headers: SB_HEADERS });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                var items = await res.json();
 
-                if (result.error) throw result.error;
-
-                var items = result.data || [];
-                if (items.length === 0) {
+                if (!items || items.length === 0) {
                     el.innerHTML = '<div class="products-loading">No packages available right now.<br>Call us at (705) 733-0232.</div>';
                     return;
                 }
-
                 el.innerHTML = items.map(renderProductCard).join('');
             } catch(err) {
                 console.error('Failed to load products:', err);
