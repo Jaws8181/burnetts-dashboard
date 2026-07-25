@@ -1,3 +1,19 @@
+// Helper — insert a row into Supabase via REST API
+async function sbInsert(env, table, data) {
+  try {
+    await fetch(`${env.SUPABASE_URL}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: {
+        'apikey': env.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${env.SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (_) {}
+}
+
 export async function onRequestPost({ request, env }) {
   try {
     const body = await request.json();
@@ -110,29 +126,21 @@ export async function onRequestPost({ request, env }) {
         throw new Error(`Resend error: ${err}`);
       }
 
-      // Save contact to PocketBase
-      try {
-        await fetch(`${env.BURNETTS_PB_URL}/api/collections/contacts/records`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: customer, email, phone,
-            service: `Custom Cut — ${cut} x${qty} — Pickup ${pickupDate} ${pickupTime}`,
-            message: notes,
-            subscribed: !!body.subscribe,
-          }),
-        });
-      } catch (_) {}
+      // Save contact to Supabase
+      await sbInsert(env, 'contacts', {
+        client_id: env.BURNETTS_CLIENT_ID,
+        name: customer, email, phone,
+        service: `Custom Cut — ${cut} x${qty} — Pickup ${pickupDate} ${pickupTime}`,
+        message: notes,
+        subscribed: !!body.subscribe,
+      });
 
-      // Save subscriber to PocketBase if opted in
+      // Save subscriber to Supabase if opted in
       if (body.subscribe && email && email !== '—') {
-        try {
-          await fetch(`${env.BURNETTS_PB_URL}/api/collections/subscribers/records`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, name: customer, source: 'order-form', unsubscribe: false }),
-          });
-        } catch (_) {}
+        await sbInsert(env, 'subscribers', {
+          client_id: env.BURNETTS_CLIENT_ID,
+          email, name: customer, source: 'order-form', unsubscribed: false,
+        });
       }
 
       return new Response(JSON.stringify({ success: true }), {
@@ -243,29 +251,35 @@ export async function onRequestPost({ request, env }) {
       throw new Error(`Resend error: ${err}`);
     }
 
-    // Save contact to PocketBase
-    try {
-      await fetch(`${env.BURNETTS_PB_URL}/api/collections/contacts/records`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: customer, email, phone,
-          service: `Package Order — Pickup ${pickupDate} ${pickupTime} — ${total}`,
-          message: items.join(', '),
-          subscribed: !!body.subscribe,
-        }),
-      });
-    } catch (_) {}
+    // Save order to Supabase
+    await sbInsert(env, 'orders', {
+      client_id: env.BURNETTS_CLIENT_ID,
+      customer_name: customer,
+      customer_email: email,
+      customer_phone: phone,
+      items,
+      total,
+      pickup_date: pickupDate,
+      pickup_time: pickupTime,
+      status: 'new',
+      subscribed: !!body.subscribe,
+    });
 
-    // Save subscriber to PocketBase if opted in
+    // Save contact to Supabase
+    await sbInsert(env, 'contacts', {
+      client_id: env.BURNETTS_CLIENT_ID,
+      name: customer, email, phone,
+      service: `Package Order — Pickup ${pickupDate} ${pickupTime} — ${total}`,
+      message: items.join(', '),
+      subscribed: !!body.subscribe,
+    });
+
+    // Save subscriber to Supabase if opted in
     if (body.subscribe && email && email !== '—') {
-      try {
-        await fetch(`${env.BURNETTS_PB_URL}/api/collections/subscribers/records`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, name: customer, source: 'order-form', unsubscribe: false }),
-        });
-      } catch (_) {}
+      await sbInsert(env, 'subscribers', {
+        client_id: env.BURNETTS_CLIENT_ID,
+        email, name: customer, source: 'order-form', unsubscribed: false,
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
