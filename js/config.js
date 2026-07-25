@@ -20,14 +20,22 @@ const BURNETTS_CLIENT_ID = 'acbc5e5e-bba2-4888-979f-52782fd7b9f8';
 var supabase = (function () {
     try {
         var sb = window.supabase; // capture module before reassignment
+        console.log('[BWA] window.supabase available:', !!(sb && sb.createClient));
         if (sb && sb.createClient) {
-            return sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            var client = sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('[BWA] Supabase client created successfully');
+            return client;
         }
+        console.warn('[BWA] Supabase module not found on window');
     } catch (e) {
-        console.warn('Supabase init failed:', e.message);
+        console.error('[BWA] Supabase init failed:', e.message);
     }
     return null;
 }());
+
+if (!supabase) {
+    console.error('[BWA] Supabase client is NULL — login will not work');
+}
 
 // App Configuration
 const APP_CONFIG = {

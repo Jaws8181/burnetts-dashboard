@@ -1,20 +1,20 @@
-const CACHE_NAME = 'burnetts-dashboard-v5';
+const CACHE_NAME = 'burnetts-dashboard-v6';
 const CACHE_URLS = [
-  '/burnetts-dashboard/',
-  '/burnetts-dashboard/index.html',
-  '/burnetts-dashboard/manifest.json',
-  '/burnetts-dashboard/js/config.js',
-  '/burnetts-dashboard/js/auth.js',
-  '/burnetts-dashboard/js/router.js',
-  '/burnetts-dashboard/js/dashboard.js',
-  '/burnetts-dashboard/js/orders.js',
-  '/burnetts-dashboard/js/inventory.js',
-  '/burnetts-dashboard/js/users.js',
-  '/burnetts-dashboard/js/settings.js',
-  '/burnetts-dashboard/js/app.js',
-  '/burnetts-dashboard/css/styles.css',
-  '/burnetts-dashboard/icons/icon-192.png',
-  '/burnetts-dashboard/icons/icon-512.png',
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/js/config.js',
+  '/js/auth.js',
+  '/js/router.js',
+  '/js/dashboard.js',
+  '/js/orders.js',
+  '/js/inventory.js',
+  '/js/users.js',
+  '/js/settings.js',
+  '/js/app.js',
+  '/css/styles.css',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
 ];
 
 self.addEventListener('install', event => {

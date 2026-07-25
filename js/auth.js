@@ -40,12 +40,20 @@ const Auth = {
             return this.demoSignIn(email);
         }
 
+        if (!supabase) {
+            console.error('[BWA] signIn called but supabase client is null');
+            throw new Error('Connection error — please refresh the page and try again.');
+        }
+
+        console.log('[BWA] Attempting signInWithPassword for:', email);
         try {
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            console.log('[BWA] Auth response:', { data: !!data, error });
             if (error) throw error;
             return data;
         } catch (err) {
-            throw new Error('Invalid email or password');
+            console.error('[BWA] Auth error:', err.message);
+            throw new Error(err.message || 'Invalid email or password');
         }
     },
 
