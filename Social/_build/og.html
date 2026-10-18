@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--tan:#c49a76;--dark:#111418;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--dark)}
+.card{position:relative;width:1200px;height:630px;overflow:hidden;background:var(--dark);color:#fff;font-family:Inter,sans-serif}
+.photo{position:absolute;left:0;top:0;width:640px;height:100%;background:url(img/steak.jpg) 35% center/cover}
+.photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,20,24,0) 55%,var(--dark) 100%)}
+.panel{position:absolute;left:600px;right:0;top:0;bottom:0;padding:0 56px 0 30px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.logo{width:250px;margin-bottom:22px}
+.kicker{color:var(--tan);font:600 17px Inter;letter-spacing:5px;text-transform:uppercase;margin-bottom:12px}
+h1{font:700 64px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.5px}
+h1 span{color:var(--tan)}
+.cta{margin-top:28px;background:var(--tan);color:var(--dark);font:700 24px Inter;padding:14px 30px;border-radius:999px}
+.foot{margin-top:20px;font:500 17px Inter;color:#9a9a9a;letter-spacing:.5px}
+</style></head>
+<body><div class="card">
+  <div class="photo"></div>
+  <div class="panel">
+    <img class="logo" src="img/logo.png" alt="">
+    <div class="kicker">Click &amp; Collect</div>
+    <h1>Order ahead.<br><span>Pick up fresh.</span></h1>
+    <div class="cta">Order online</div>
+    <div class="foot">505 Bryne Dr, Barrie · (705) 733-0232</div>
+  </div>
+</div></body></html>

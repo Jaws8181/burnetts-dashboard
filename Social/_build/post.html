@@ -1,0 +1,50 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--tan:#c49a76;--dark:#111418;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--dark)}
+.card{position:relative;width:1080px;height:1350px;overflow:hidden;background:var(--dark);color:#fff;font-family:Inter,sans-serif}
+.sq .card{height:1080px}
+.hero{position:absolute;left:0;top:0;width:100%;height:760px;background:url(img/steak.jpg) center 40%/cover}
+.sq .hero{height:560px}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(17,20,24,.78) 0%,rgba(17,20,24,.15) 32%,rgba(17,20,24,.55) 62%,var(--dark) 100%)}
+.logo{position:absolute;top:40px;left:50%;transform:translateX(-50%);width:330px;z-index:2;filter:drop-shadow(0 4px 18px rgba(0,0,0,.6))}
+.sq .logo{width:260px;top:28px}
+.content{position:absolute;left:0;right:0;top:530px;padding:0 70px;text-align:center;z-index:2}
+.sq .content{top:420px}
+.kicker{display:inline-block;color:var(--tan);font:600 26px Inter;letter-spacing:7px;text-transform:uppercase;margin-bottom:16px;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+h1{font:700 104px/0.98 Oswald,sans-serif;text-transform:uppercase;letter-spacing:1px;text-shadow:0 4px 24px rgba(0,0,0,.5)}
+.sq h1{font-size:88px}
+h1 span{color:var(--tan)}
+.tiles{display:flex;gap:18px;justify-content:center;margin:40px 0 0}
+.sq .tiles{margin-top:30px}
+.tile{width:300px;height:210px;border-radius:18px;background-size:cover;background-position:center;border:2px solid rgba(196,154,118,.45)}
+.sq .tile{height:170px}
+.t1{background-image:url(img/tomahawk.jpg);background-position:center 45%}
+.t2{background-image:url(img/family.jpg)}
+.t3{background-image:url(img/burgers.jpg);background-position:center 75%}
+.steps{margin-top:34px;font:500 30px Inter;color:#d8d8d8;letter-spacing:.5px}
+.steps b{color:var(--tan);font-weight:700}
+.sq .steps{margin-top:24px;font-size:27px}
+.cta{display:inline-block;margin-top:30px;background:var(--tan);color:var(--dark);font:700 40px Inter;padding:22px 46px;border-radius:999px;letter-spacing:.3px}
+.sq .cta{margin-top:22px;font-size:36px;padding:18px 40px}
+.foot{position:absolute;left:0;right:0;bottom:38px;text-align:center;font:500 24px Inter;color:#9a9a9a;letter-spacing:1px}
+.sq .foot{bottom:26px;font-size:22px}
+.foot i{color:var(--tan);font-style:normal;padding:0 12px}
+</style></head>
+<body><div class="card">
+  <div class="hero"></div>
+  <img class="logo" src="img/logo.png" alt="">
+  <div class="content">
+    <div class="kicker">Now taking orders online</div>
+    <h1>Order ahead.<br><span>Pick up fresh.</span></h1>
+    <div class="tiles"><div class="tile t1"></div><div class="tile t2"></div><div class="tile t3"></div></div>
+    <div class="steps"><b>1</b> Pick your cuts &nbsp;·&nbsp; <b>2</b> Choose a pickup time &nbsp;·&nbsp; <b>3</b> We confirm</div>
+    <div class="cta">burnettsorders.bwabarrie.ca</div>
+  </div>
+  <div class="foot">505 Bryne Dr, Barrie<i>|</i>(705) 733-0232</div>
+</div>
+<script>if(location.hash==='#sq')document.documentElement.classList.add('sq')</script>
+</body></html>
