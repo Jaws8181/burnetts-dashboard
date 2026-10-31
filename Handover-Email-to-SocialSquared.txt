@@ -1,0 +1,35 @@
+TO:       info@socialsquared.ca
+CC:       shane.burnett22@hotmail.com
+SUBJECT:  Website & domain handover – Burnett's Butcher Shop
+
+(Copy everything between the lines below into the email body.)
+
+------------------------------------------------------------
+
+Hi SocialSquared team,
+
+My name is James Walsh. I'm working with Shane Burnett of Burnett's Butcher Shop (burnettsbutchershop.com) on his online presence, and Shane has asked me to help get his website accounts organized. He's copied on this email so you have his confirmation that I'm authorized to sort this out on his behalf. Feel free to confirm directly with him.
+
+To make sure Shane has full ownership of and access to everything tied to his website, could you please help us with the following:
+
+1. Domain: Please confirm whose name burnettsbutchershop.com is registered under. Shane would like it in his own name. If a transfer is needed, please unlock the domain and provide the transfer (EPP/auth) code.
+
+2. Hosting: Is the site hosted under Shane's own SiteGround account or under yours? If it's on your account, we'd like it either moved to an account in Shane's name, or a full backup of the site (files and database) provided.
+
+3. WordPress: Please set Shane up with an administrator login.
+
+4. Account status: Is there any active contract, subscription, or balance owing? We want to make sure everything is settled.
+
+We appreciate the work you've done on the site and want to keep this simple for everyone. Let us know what you need from Shane to verify ownership and we'll get it to you.
+
+Thanks,
+
+James Walsh
+Barrie Workflow Automation
+james@bwabarrie.ca | (705) 300-2404
+bwabarrie.ca
+
+On behalf of Shane Burnett, Burnett's Butcher Shop
+(705) 733-0232
+
+------------------------------------------------------------
